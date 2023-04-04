@@ -1,0 +1,56 @@
+Congratulations, you found the documentation folder.
+
+This will be incredibly limited documentation, but it will be here; until a hero I need but don't deserve comes along and makes it better.
+
+The documentation is pretty freeform, so edit at will, and just put in a pull request if you want changes merged into main.
+
+--How to make everything work--
+
+I won't go into detail re: getting a laravel environment set up, but I will say that you need to have a database set up, and you will have to populate .env.example with data and rename it to .env.
+
+Stuff you need to run this bot:
+- minimum PHP 8.1
+- laravel 9
+- whatever npm version you need to run laravel 9
+- a mysql db
+- a discord bot token
+    -your discord bot set up to run in the channel you want to run it in
+- an OpenAI api token
+- a pinecone api token
+
+-------------------------------------------------------
+
+---------- 1 -----------
+composer update (in your php environment)
+
+---------- 2 -----------
+npm run dev (in your node environment, which, if you're like me and run that part from windows, you don't run both in the same place)
+
+(After that, everything will happen in your php environment.)
+
+---------- 3 -----------
+php artisan migrate
+ - this will populate your database with the tables you need
+ - you need a mysql db set up and a db with the same name as whats in the .env, make sure your credentials match in there too. Depending on how you installed PHP you should have mysql installed too, but if you don't, you can get it from here: https://dev.mysql.com/downloads/mysql/
+
+ ------- 4 ------------
+ php artisan queue:listen
+ - start the worker queue to run jobs so that the bot doesn't have to wait for the AI to respond
+
+ ---------- 5 -----------
+ php artisan disdain:go
+ - this starts the bot!
+ ----------------------------------------------------
+
+Important notes:
+
+Yeah so this is a PHP discord bot. Unlike your fancy schmancy python and js bots, this bot runs off the command line for now. I'm in the process of making it run as a webservice, but in the meantime, if that daemon is running, (disdain:go) then the bot is online and listening.
+PHP isn't asynchronous natively so we make use of ReactPHP's event loop to make it so that the bot can listen for messages. Without that, the bot would be stuck waiting for the AI to respond, and that would be bad.
+
+If you don't run the worker queue, nothing will get uploaded to the vector db, and she won't make new long-term memories.
+
+That's about it. Not that anyone else is gonna use this, but if you do, I hope it works for you. If you have questions, ask, I'll answer them as best I can.
+
+Sorry my code sucks
+
+- ambi
