@@ -63,63 +63,63 @@ class bot_main
 
 
                 //if earmuffs are on, bot will only respond to owner
-               if(!$selfInfo->earmuffs || ($message->author->id === $ownerId && $selfInfo->earmuffs)) {
+                if(!$selfInfo->earmuffs || ($message->author->id === $ownerId && $selfInfo->earmuffs)) {
 
-                   //if it's talking to anne, or if it's mentioned, or if it's a test command
-                   try {
-                       if (str_starts_with(strtolower($message->content), 'anne')
+                    //if it's talking to anne, or if it's mentioned, or if it's a test command
+                    try {
+                        if (str_starts_with(strtolower($message->content), 'anne')
                             || $mention
                             || str_starts_with(strtolower($message->content), '-=test')
                             || str_starts_with(strtolower($message->content), '-=think')
-                       ) {
+                        ) {
 
-                           $anne = new OpenAICore();
-
-
-                           $anne->query($message, $discord, $mention);
-
-                       }
+                            $anne = new OpenAICore();
 
 
-                       //BioGPT query (gils this took a lot of work lol)
-                       if(stripos($message->content, 'dr. anne')!==false
-                           && !$message->author->bot){
+                            $anne->query($message, $discord, $mention);
+
+                        }
+
+
+                        //BioGPT query (gils this took a lot of work lol)
+                        if(stripos($message->content, 'dr. anne')!==false
+                            && !$message->author->bot){
 
 //                          $anne = new BioGPTCore();
 
-                         //  $bioGPTQuery = $anne->query($message->content);
+                            //  $bioGPTQuery = $anne->query($message->content);
 
 
-                           return $message->reply('You have Lupus.');
+                            return $message->reply('You have Lupus.');
 //                           return $message->reply($bioGPTQuery);
 
 
-                       }
+                        }
 
-                    //command tag path
-                       if (str_starts_with($message->content, $commandTag['tag']) && !$message->author->bot) {
+                        //command tag path
+                        if (str_starts_with($message->content, $commandTag['tag']) && !$message->author->bot) {
 
-                           $contentData = "";
-                           $commandHasContent = stripos($message->content, ' ') && " ";
-                           if ($commandHasContent) {
-                               $commandLength = stripos($message->content, $commandHasContent) - strlen($commandTag['tagLength']) + 1;
-                               Log::debug("\n Command Length: " . $commandLength);
-                               $command = substr($message->content, $commandTag['tagLength'], $commandLength);
-                               $contentData = substr($message->content, $commandLength + $commandTag['tagLength']);
-                           } else {
-                               $command = substr($message->content, $commandTag['tagLength']);
-                           }
+                            $contentData = "";
+                            $commandHasContent = stripos($message->content, ' ') && " ";
+                            if ($commandHasContent) {
+                                $commandLength = stripos($message->content, $commandHasContent) - strlen($commandTag['tagLength']) + 1;
+                                Log::debug("\n Command Length: " . $commandLength);
+                                $command = substr($message->content, $commandTag['tagLength'], $commandLength);
+                                $contentData = substr($message->content, $commandLength + $commandTag['tagLength']);
+                            } else {
+                                $command = substr($message->content, $commandTag['tagLength']);
+                            }
 
-                           if (HandleCommandProcess::isValidCommand($command)) {
+                            if (HandleCommandProcess::isValidCommand($command)) {
 
-                               HandleCommandProcess::runCommandOnContent($command, $contentData, $message, $message->user_id === $ownerId);
-                           }
-                       }
-                   } catch (\Exception $e) {
-                       Log::debug($e->getMessage());
-                       return $message->reply('Stoppit.');
-                   }
-               }
+                                HandleCommandProcess::runCommandOnContent($command, $contentData, $message, $message->user_id === $ownerId);
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        Log::debug($e->getMessage());
+                        return $message->reply('Stoppit.');
+                    }
+                }
             });
 
         });
