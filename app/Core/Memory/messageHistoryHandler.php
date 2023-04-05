@@ -8,7 +8,7 @@ use App\Models\Person;
 
 class messageHistoryHandler
 {
- //Adds the most recent message to the prompt as well as some other stuff i should put in their own classes or functions
+    //Adds the most recent message to the prompt as well as some other stuff i should put in their own classes or functions
     public static function addMostRecentMessage($prompt, $person, $personNameShown)
     {
 
@@ -26,14 +26,14 @@ class messageHistoryHandler
         \nYou are not to end your response by asking if there is anything you can help with.\n";
 
 
-            if($lastMessage !== $person->last_message){
-               $prompt .="          \nThe last message you received was: $actualLastMessage from $lastPerson->name\n"
-                           ;
-            }else{
-                $prompt .="It was the last message you received.\n";
-            }
+        if($lastMessage !== $person->last_message){
+            $prompt .="          \nThe last message you received was: $actualLastMessage from $lastPerson->name\n"
+            ;
+        }else{
+            $prompt .="It was the last message you received.\n";
+        }
 
-            return $prompt;
+        return $prompt;
     }
 
     public static function addMostRecentMessageGPT($person, $personNameShown)
@@ -50,15 +50,15 @@ class messageHistoryHandler
         $output[] =  [
             'role'=>'user',
             'content' => "The person you're speaking to has username $person->name. But please refer to them as $personNameShown.\n",
-            ];
-            $output[] = [
+        ];
+        $output[] = [
             'role'=>'user',
             'content'=> $person->last_message
-                ];
-            $output[] = [
-                'role'=>'user',
-                'content'=> $person->last_response,
-            ];
+        ];
+        $output[] = [
+            'role'=>'user',
+            'content'=> $person->last_response,
+        ];
 
         if($lastMessage !== $person->last_message){
             $output[] = [

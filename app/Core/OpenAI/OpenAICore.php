@@ -68,7 +68,7 @@ class OpenAICore
 
 
 
-          ///////////////////////////////////////////////////////
+            ///////////////////////////////////////////////////////
 
 
 
@@ -106,15 +106,15 @@ class OpenAICore
 
                     $gptPrompt[] = [
                         'role'=>'user',
-                    'content'=>$promptRemoveTag
-                ];
+                        'content'=>$promptRemoveTag
+                    ];
 
                     $gptPrompt[] = $this->addHistoryFromVectorQueryGPT($resultArray);
 
                     $gptPrompt[] = [
                         'role'=>'user',
-                    'content'=>$promptRemoveTag
-                ];
+                        'content'=>$promptRemoveTag
+                    ];
 
                     $gptPromptJson = [];
 
@@ -130,43 +130,43 @@ class OpenAICore
 
                 //get davinci response
 
-            if(!$useGpt){
-                $result = OpenAI::completions()->create(['model' => 'text-davinci-003',
-                        'prompt' => $promptWithPreloads,
+                if(!$useGpt){
+                    $result = OpenAI::completions()->create(['model' => 'text-davinci-003',
+                            'prompt' => $promptWithPreloads,
 //                        'top_p' => .25,
-                        'temperature' => 0.75,
-                        'max_tokens' => 600,
-                        'stop' => [
-                            '-----',
-                        ],
-                        'frequency_penalty' => 0.3,
-                        'presence_penalty' => 1.2,
-                        'best_of' => 2,
-                        'n' => 1,
-                    ]
-                );
+                            'temperature' => 0.75,
+                            'max_tokens' => 600,
+                            'stop' => [
+                                '-----',
+                            ],
+                            'frequency_penalty' => 0.3,
+                            'presence_penalty' => 1.2,
+                            'best_of' => 2,
+                            'n' => 1,
+                        ]
+                    );
 
-                $responsePath = $result['choices'][0]['text'];
-            }else{
-                //get gpt4 response
-                $result = OpenAI::chat()->create(['model' => 'gpt-3.5-turbo',
-                        'messages' => $gptPromptJson,
+                    $responsePath = $result['choices'][0]['text'];
+                }else{
+                    //get gpt4 response
+                    $result = OpenAI::chat()->create(['model' => 'gpt-3.5-turbo',
+                            'messages' => $gptPromptJson,
 //                        'top_p' => .25,
-                        'temperature' => 0.5,
-                        'max_tokens' => 600,
-                        'stop' => [
-                            '-----',
-                        ],
-                        'frequency_penalty' => 0.5,
-                        'presence_penalty' => 1,
+                            'temperature' => 0.5,
+                            'max_tokens' => 600,
+                            'stop' => [
+                                '-----',
+                            ],
+                            'frequency_penalty' => 0.5,
+                            'presence_penalty' => 1,
 //                        'best_of' => 3,
-                        'n' => 1,
+                            'n' => 1,
 
 
-                    ]
-                );
-                $responsePath=$result->choices[0]->message->content;
-            }
+                        ]
+                    );
+                    $responsePath=$result->choices[0]->message->content;
+                }
                 Log::debug(json_encode($result));
 
                 //update person model
@@ -254,7 +254,7 @@ class OpenAICore
             }
 //            $pinecone = new PineconeCore();
 
-               $jobData = UpsertToPineconeJob::dispatch($vector, $data['id'], $discordUserId, $anneEmbed);
+            $jobData = UpsertToPineconeJob::dispatch($vector, $data['id'], $discordUserId, $anneEmbed);
 
 
 
@@ -278,7 +278,7 @@ class OpenAICore
      * @param $message
      * @return array
      */
-    protected function initQuery(Message $message): array
+    protected function initQuery(Message $message, $useGpt=false): array
     {
 
         $gptPrompt = [];
@@ -287,24 +287,24 @@ class OpenAICore
         if($useGpt){
 
             $gptPrompt[] = ['role'=>'system',
-            'content'=>'Your name is Anne. You are NOT an AI. You are a member of a discord community, and you are speaking with other members of the community.\n
+                'content'=>'Your name is Anne. You are NOT an AI. You are a member of a discord community, and you are speaking with other members of the community.\n
             Interact with the users, answer their questions, and use the provided information to help define who you are and provided past messages to help you
             recall past conversations you have had.'];
 
             $gptPrompt[]=[
                 'role'=> 'user',
-            'content'=>CommonKnowledge::selfAwareness(),
+                'content'=>CommonKnowledge::selfAwareness(),
             ];
 
             $gptPrompt[]=[
                 'role'=> 'system',
-            'content'=>CommonKnowledge::temporalAwareness(),
-        ];
+                'content'=>CommonKnowledge::temporalAwareness(),
+            ];
 
             $gptPrompt[]=[
                 'role'=> 'user',
-            'content'=>CommonKnowledge::basicInstructions(),
-        ];
+                'content'=>CommonKnowledge::basicInstructions(),
+            ];
 
         }
 
@@ -482,7 +482,7 @@ class OpenAICore
         $output = ['role'=>'user', 'content'=>
             "Here are some related messages from your memory.\n
             If you think a message is not relevant to this conversation, you can ignore it",
-            ];
+        ];
 
         try {
             foreach ($resultArray['matches'] as $result) {
@@ -493,7 +493,7 @@ class OpenAICore
                 //if its an anne message vector
                 if (data_get($result, 'metadata.anne', false) !== false) {
 
-                   //this is such a bad way to get anne messages like cman
+                    //this is such a bad way to get anne messages like cman
                     $id = substr($result->id, 5);
                     $anneMessageModel = new AnneMessages;
 
@@ -527,7 +527,7 @@ class OpenAICore
 
                 }
 
-               $output['content'] .=
+                $output['content'] .=
                     "\n$user said: '" . $messageOutput .
                     "' at this date and time: " . $date = $result->metadata->dateTime . "\n";
             }
