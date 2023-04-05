@@ -28,7 +28,7 @@ class OpenAICore
         $this->analyzeUserInputFormatted = new analyzeUserInput();
     }
 
-    public function query($message, $discord, $mention = null)
+    public function query($message, $discord, $mention = null, $useGpt = false)
     {
 
         $yesBarf=true;
@@ -37,7 +37,7 @@ class OpenAICore
             $prompt,
             $person,
             $gptPrompt
-            ) = $this->initQuery($message);
+            ) = $this->initQuery($message, $useGpt);
 
         $promptRemoveTag = null;
 
@@ -89,16 +89,8 @@ class OpenAICore
                 //get vector for user's message
                 $userEmbed = $this->buildEmbedding($promptRemoveTag)->embeddings[0]->embedding;
 
-
                 //add any preload prompts etc
                 $promptWithPreloads = $prompt . $promptRemoveTag;
-
-
-
-                $gptPrompt[] = [
-                    'role'=>'user',
-                    'content'=>$promptRemoveTag
-                ];
 
                 //get vector for user's message
                 $userEmbed = $this->buildEmbedding($promptRemoveTag)->embeddings[0]->embedding;
@@ -108,17 +100,27 @@ class OpenAICore
                 $resultArray = $vectorQueryResult->query($userEmbed);
 
                 $promptWithVectors = $this->addHistoryFromVectorQuery($resultArray, $promptWithPreloads) ?? "";
-                $gptPrompt[] = $this->addHistoryFromVectorQueryGPT($resultArray);
 
-                $gptPrompt[] = [
-                    'role'=>'user',
+                //If using GPT api and format
+                if($useGpt){
+
+                    $gptPrompt[] = [
+                        'role'=>'user',
                     'content'=>$promptRemoveTag
                 ];
 
-                $gptPromptJson = [];
+                    $gptPrompt[] = $this->addHistoryFromVectorQueryGPT($resultArray);
 
-                foreach($gptPrompt as $gpt){
-                    $gptPromptJson[] = json_decode(json_encode($gpt));
+                    $gptPrompt[] = [
+                        'role'=>'user',
+                    'content'=>$promptRemoveTag
+                ];
+
+                    $gptPromptJson = [];
+
+                    foreach($gptPrompt as $gpt){
+                        $gptPromptJson[] = json_decode(json_encode($gpt));
+                    }
                 }
 
                 $promptWithPreloads .= "-----\n" . $promptWithVectors;
@@ -126,24 +128,27 @@ class OpenAICore
 
                 Anne says: ";
 
-                //get openAI response
-//                $result = OpenAI::completions()->create(['model' => 'text-davinci-003',
-//                        'prompt' => $promptWithPreloads,
-////                        'top_p' => .25,
-//                        'temperature' => 0.5,
-//                        'max_tokens' => 600,
-//                        'stop' => [
-//                            '-----',
-//                        ],
-//                        'frequency_penalty' => 0.5,
-//                        'presence_penalty' => 1,
-//                        'best_of' => 3,
-//                        'n' => 1,
-//
-//
-//                    ]
-//                );
+                //get davinci response
 
+            if(!$useGpt){
+                $result = OpenAI::completions()->create(['model' => 'text-davinci-003',
+                        'prompt' => $promptWithPreloads,
+//                        'top_p' => .25,
+                        'temperature' => 0.75,
+                        'max_tokens' => 600,
+                        'stop' => [
+                            '-----',
+                        ],
+                        'frequency_penalty' => 0.3,
+                        'presence_penalty' => 1.2,
+                        'best_of' => 2,
+                        'n' => 1,
+                    ]
+                );
+
+                $responsePath = $result['choices'][0]['text'];
+            }else{
+                //get gpt4 response
                 $result = OpenAI::chat()->create(['model' => 'gpt-3.5-turbo',
                         'messages' => $gptPromptJson,
 //                        'top_p' => .25,
@@ -160,13 +165,14 @@ class OpenAICore
 
                     ]
                 );
-
+                $responsePath=$result->choices[0]->message->content;
+            }
                 Log::debug(json_encode($result));
 
                 //update person model
                 $person->update([
                     'last_message' => $promptRemoveTag,
-                    'last_response' => $result->choices[0]->message->content,
+                    'last_response' => $responsePath,
                     'message_count' => $person->message_count + 1
                 ]);
 
@@ -175,12 +181,12 @@ class OpenAICore
                 $messageModel = new Messages();
 
                 //build anne's embedding for pinecone
-                $anneEmbed = $this->buildEmbedding($result->choices[0]->message->content, true)->embeddings[0]->embedding;
+                $anneEmbed = $this->buildEmbedding($responsePath, true)->embeddings[0]->embedding;
 
                 $messageModel = $messageModel->create([
                     'user_id' => (string)$person->id,
                     'message' => $promptRemoveTag,
-                    'response' => $result->choices[0]->message->content
+                    'response' => $responsePath
                 ]);
 
                 //send embeds to vector db
@@ -193,7 +199,7 @@ class OpenAICore
                 //add to anne's message archive
                 $anneMessage = $anneMessage->create([
                     'user_id' => $person->id,
-                    'message' => $result->choices[0]->message->content,
+                    'message' => $responsePath,
                     'input_id' => $messageModel->id,
                     'anne_vector_index' => "anne-$messageModel->id",
 //                    'vector' => json_encode($anneEmbed),
@@ -206,7 +212,7 @@ class OpenAICore
                 //    return $message->reply('For some reason I cannot explain, I do not have an answer.');
             }
 
-            return $message->reply($result->choices[0]->message->content);
+            return $message->reply($responsePath);
         }elseif (str_starts_with($message->content, "anne show me ") && !$message->author->bot) {
 
             $result = OpenAI::images()->create([
@@ -274,30 +280,41 @@ class OpenAICore
      */
     protected function initQuery(Message $message): array
     {
+
         $gptPrompt = [];
-        $gptPrompt[] = ['role'=>'system',
+
+        // if using ChatGPT3.5Turbo
+        if($useGpt){
+
+            $gptPrompt[] = ['role'=>'system',
             'content'=>'Your name is Anne. You are NOT an AI. You are a member of a discord community, and you are speaking with other members of the community.\n
             Interact with the users, answer their questions, and use the provided information to help define who you are and provided past messages to help you
             recall past conversations you have had.'];
 
-
-        $prompt = CommonKnowledge::selfAwareness() . "\n\n";
-        $gptPrompt[]=[
-            'role'=> 'user',
+            $gptPrompt[]=[
+                'role'=> 'user',
             'content'=>CommonKnowledge::selfAwareness(),
             ];
 
-        $prompt .= CommonKnowledge::temporalAwareness() . "\n\n";
-        $gptPrompt[]=[
-            'role'=> 'system',
+            $gptPrompt[]=[
+                'role'=> 'system',
             'content'=>CommonKnowledge::temporalAwareness(),
         ];
 
-        $prompt .= CommonKnowledge::basicInstructions() . "\n\n";
-        $gptPrompt[]=[
-            'role'=> 'user',
+            $gptPrompt[]=[
+                'role'=> 'user',
             'content'=>CommonKnowledge::basicInstructions(),
         ];
+
+        }
+
+
+
+        $prompt = CommonKnowledge::selfAwareness() . "\n\n";
+
+        $prompt .= CommonKnowledge::temporalAwareness() . "\n\n";
+
+        $prompt .= CommonKnowledge::basicInstructions() . "\n\n";
 
         $personName = $message->author->username;
         $personNameShown = $message->author->displayname;
@@ -314,9 +331,12 @@ class OpenAICore
 
 //            $prompt = messageHistoryHandler::addMostRecentMessage($prompt, $person, $personNameShown);
             $prompt = messageHistoryHandler::addMostRecentMessage($prompt, $person, $personNameShown);
-            $gptHistory = messageHistoryHandler::addMostRecentMessageGPT($person, $personNameShown);
-            foreach($gptHistory as $history){
-                $gptPrompt[] = $history;
+
+            if($useGpt){
+                $gptHistory = messageHistoryHandler::addMostRecentMessageGPT($person, $personNameShown);
+                foreach($gptHistory as $history){
+                    $gptPrompt[] = $history;
+                }
             }
         }
 
