@@ -17,16 +17,18 @@ class Messages extends Model
         'vector'
     ];
 
-    public function user()
+    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Person::class, 'id', 'user_id');
     }
 
-    public function anneReply(){
-        return $this->hasOne(AnneMessages::class, 'reply_id', 'id');
+    public function anneReply(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(AnneMessages::class, 'input_id', 'id');
     }
 
-    public function attachment(){
+    public function attachment(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
         return $this->hasOne(Attachments::class, 'message_id', 'id');
     }
 }
