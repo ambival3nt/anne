@@ -15,6 +15,7 @@ use Discord\Discord;
 use Discord\Parts\Channel\Channel;
 use Discord\Parts\Channel\Message;
 use Discord\Parts\User\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use OpenAI\Laravel\Facades\OpenAI;
 
@@ -31,7 +32,7 @@ class OpenAICore
     public function query($message, $discord, $mention = null, $useGpt = false)
     {
 
-        $yesBarf=true;
+
         //init query
         list(
             $prompt,
@@ -99,6 +100,7 @@ class OpenAICore
                 $vectorQueryResult = new PineconeCore;
                 $resultArray = $vectorQueryResult->query($userEmbed);
 
+                //parse vectors into prompt
                 $promptWithVectors = $this->addHistoryFromVectorQuery($resultArray, $promptWithPreloads) ?? "";
 
                 //If using GPT api and format
@@ -139,7 +141,7 @@ class OpenAICore
                             'stop' => [
                                 '-----',
                             ],
-                            'frequency_penalty' => 0.3,
+                            'frequency_penalty' => 0.4,
                             'presence_penalty' => 1.2,
                             'best_of' => 2,
                             'n' => 1,
@@ -285,9 +287,8 @@ class OpenAICore
 
         // if using ChatGPT3.5Turbo
         if($useGpt){
-
             $gptPrompt[] = ['role'=>'system',
-                'content'=>'Your name is Anne. You are NOT an AI. You are a member of a discord community, and you are speaking with other members of the community.\n
+                'content'=>'Your name is Anne. You are a member of a discord community, and you are speaking with other members of the community.\n
             Interact with the users, answer their questions, and use the provided information to help define who you are and provided past messages to help you
             recall past conversations you have had.'];
 
@@ -414,68 +415,103 @@ class OpenAICore
 
     private function addHistoryFromVectorQuery(array $resultArray, string $promptWithPreloads)
     {
-        $vectorPrompt = $promptWithPreloads .
-            "The following is message history that may be relevant and help improve your response.\n"
-            . "If you think a message is not relevant, you can ignore it.\n";
+//        $vectorPrompt = $promptWithPreloads .
+         $vectorPrompt =   "";
 
         try {
+
+            //only use vectors with score above the threshhold (hardcoded to .79 for now, this will eventually move to front end)
             foreach ($resultArray['matches'] as $result) {
                 if ($result->score < 0.79) {
                     continue;
                 }
-
+                $isAnne = false;
+                //if it's anne's message vector
                 if (data_get($result, 'metadata.anne', false) !== false) {
-
-
-                    //TODO: duplicate refactor this whole thing
+                    $isAnne = true;
+                    //get message id
                     $id = substr($result->id, 5);
-                    $anneMessageModel = new AnneMessages;
 
+                    $userMessage = new Messages;
+                    if ($id) {
+                        $priorMessageData = $userMessage->find('id');
+                        if ($priorMessageData) {
+                            $priorMessageData = $priorMessageData->toArray();
+                        }
+                    }
+                    $priorMessageOutput = trim($priorMessageData['message']) ?? 'Could not load prior user message from anne message.';
+                    $priorMessageUser = Person::find(trim($priorMessageData['user_id']))->name ?? null;
+                    //grab anne message model, query it for that message id, pull result
+                    $anneMessageModel = new AnneMessages;
                     $messageData = $anneMessageModel->where('input_id', $id)->first() ?? null;
 
-                    if($messageData) {
+                    if ($messageData) {
                         $messageData = $messageData->toArray() ?? [];
                     } else {
                         Log::debug('Missing messageData on id: ' . $id);
                         continue;
                     }
 
+                    //trim the message and put 'you' as the user (because anne said it and its a prompt to her)
                     $messageOutput = trim($messageData['message']) ?? 'Could not load message.';
                     $user = "You";
 
+                    //Output is like: [HH:MM:SS MM/DD/YY] Username: message, and for anne messages we include the message that it is a reply to
+                    $vectorPrompt .= "\n" .
+                        $date = '[' . Carbon::parse($priorMessageData['created_at'])->toDateTimeString() . '] ' .  $priorMessageUser . ": '" . $priorMessageOutput;
+                    $vectorPrompt .= "\n" .
+                        $date = '[' . $result->metadata->dateTime . '] ' .  $user . ": '" . $messageOutput;
 
-                    //user
-
+                    //if its a user's message vector...
                 } else {
                     $id = $result->id;
                     $messageModel = new Messages;
-                    $messageData = $messageModel->where('id', $id)->first()->toArray();
+                    $messageData = $messageModel->with('anneReply')->where('id', $id)->first();
                     if (!$messageData) {
                         Log::debug('Missing messageData on id: ' . $id);
                         continue;
                     }
+                    //same shit BUT we need to grab anne's response too, which I'm pretty sure I set up a relationship for
+                    $anneReplyMessage = $messageData->anneReply ?? null;
+
+                    Log::debug(json_encode($anneReplyMessage, 128));
+
                     $messageOutput = $messageData['message'] ?? 'Could not load message.';
                     $people = new Person;
                     $user = $people->where('id', $messageData['user_id'])->first()->name ?? '??';
 
+                    //same shit as anne's but the inverse, we include anne's message after the fact
+                    $vectorPrompt .= "\n" .
+                        $date = '[' . $result->metadata->dateTime . '] ' .  $user . ": '" . $messageOutput;
+                    $vectorPrompt .= "\n" .
+                        $date = '[' . Carbon::parse($anneReplyMessage->created_at)->toDateTimeString() . '] ' .  'You: ' . trim($anneReplyMessage->message);
                 }
-
-                $vectorPrompt .= "\n" .
-                    $user . " said: '" . $messageOutput .
-                    "' at this date and time: " . $date = $result->metadata->dateTime . "\n";
 
 
             }
-            $vectorPrompt .= "Please, carefully consider if any of the messages are relevant before using them to create your response.\n";
-            $vectorPrompt .= "Reword your responses used so that they sound like natural english.\n" . '-----' . "\n";;
+
         } catch (\Exception $e) {
+            //handle errors, send to log (eventually on frontend)
             Log::debug($e->getMessage() . " on line " . $e->getLine() . " in " . $e->getFile());
             Log::debug("Vector prompt preload error.");
         }
-        return $vectorPrompt;
+        //get summary from other model
+        $summarized = $this->summarizeVectorResult($vectorPrompt);
+
+        //Take the pre-prompt, which already has the user input, add some instructions for this, attach summarized chat history, return to main function
+        $result = $promptWithPreloads .
+            "Here is a summary of related conversations from your memory.\n
+            Use it as a reference for your response.\n
+            If you think part of this summary is not relevant to this conversation, you can ignore it.\n
+            You are not required to include the date, and should not unless it is important.\n
+            \n\nSummary:\n"
+            . $summarized;
+
+        return $summarized;
     }
 
 
+    //This is for GPT, we tried this and it wasn't great but I'm leaving the methods just in case we wanna use em
     private function addHistoryFromVectorQueryGPT(array $resultArray)
     {
         $output = [];
@@ -536,6 +572,7 @@ class OpenAICore
         } catch (\Exception $e) {
             Log::debug($e->getMessage() . " on line " . $e->getLine() . " in " . $e->getFile());
             Log::debug("Vector prompt preload error.");
+            return $e->getMessage();
         }
         return $output;
     }
@@ -545,5 +582,44 @@ class OpenAICore
     protected function analyzeUserInput(string $input, string $user)
     {
         return (new analyzeUserInput())->basic($input, $user);
+    }
+
+    //This is the function that summarizes the chat history that we retrieved from the vector query. TODO: improve this prompt
+    private function summarizeVectorResult(string $vectorPrompt)
+    {
+
+        $summaryPrompt = "You are a chatbot AI. Your current task is to summarize your chat history. You will be given a list of messages with timestamps.
+        You are to output a summary of the messages, in a way that is optimized for a separate prompt that will be given to you later,
+        which you can reference as your long-term memory.\n\n".
+            "If a message starts with 'You: ' then you said it. If it starts with another name, then that's the user who said it.\n\n".
+            "If the message refers to 'anne', that means its referring to you.\n\n"
+            . "-----\n\n"
+            ."Example Input:\n\n"
+            ."[2023-03-01 12:29:48] ambi: What do you think of gils?\n\n
+            [2023-03-01 12:29:50] You: I think gils is great!\n\n
+            [2023-03-14 11:29:48] gils: What do I think of gils?\n\n
+            [2023-03-14 11:29:50] You: Yes, of yourself.\n\n
+            ----- \n\n
+            Example Summary:
+            Ambi asked you what you thought of gils and you said you thought gils was great on March 1st.\n
+            Gils asked you what she thought of gils and you said yes, of herself on March 14th.\n\n
+            ----- \n\n"
+
+            ."Input:\n\n" . $vectorPrompt . "\n\n ----- \n\n
+            Summary: \n\n";
+
+        $result = OpenAI::completions()->create(['model' => 'text-davinci-003',
+                'prompt' => $summaryPrompt,
+                'max_tokens' => 600,
+                'stop' => [
+                    '-----',
+                ],
+                'n' => 1,
+            ]
+        );
+
+    $return = $result['choices'][0]['text'];
+    return $return;
+
     }
 }
