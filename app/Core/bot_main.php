@@ -24,10 +24,10 @@ class bot_main
         //initialize the bot
 
 
-        $selfInfo = Anne::find(1) ?? null;
+        $selfInfo = Anne::all()->first() ?? null;
 
         if(!$selfInfo){
-            $selfInfo = Anne::firstOrCreate(['id' => 1, 'last_message' => '-', 'last_user' => '-', 'last_response' => '-', 'earmuffs' => false]);
+            $selfInfo = Anne::firstOrCreate(['id' => 1, 'last_message' => '-', 'last_user' => '-', 'last_response' => '-', 'earmuffs' => 0, 'debug' => 0]);
         }
 
         $ownerId = getenv('OWNER_ID');
@@ -99,20 +99,20 @@ class bot_main
                         //command tag path
                         if (str_starts_with($message->content, $commandTag['tag']) && !$message->author->bot) {
 
+                            Log::debug("input: " . $message->content);
                             $contentData = "";
                             $commandHasContent = stripos($message->content, ' ') && " ";
-                            if ($commandHasContent) {
-                                $commandLength = stripos($message->content, $commandHasContent) - strlen($commandTag['tagLength']) + 1;
-                                Log::debug("\n Command Length: " . $commandLength);
-                                $command = substr($message->content, $commandTag['tagLength'], $commandLength);
-                                $contentData = substr($message->content, $commandLength + $commandTag['tagLength']);
-                            } else {
-                                $command = substr($message->content, $commandTag['tagLength']);
-                            }
+                            $command = substr($message->content, $commandTag['tagLength']);
+                            $commandArray = explode(' ', $command);
 
-                            if (HandleCommandProcess::isValidCommand($command)) {
+                                Log::debug("command " . $command);
+                                Log::debug("command array " . json_encode($commandArray,128));
+                                Log::debug("message content " . $message->content);
 
-                                HandleCommandProcess::runCommandOnContent($command, $contentData, $message, $message->user_id === $ownerId);
+
+                            if (HandleCommandProcess::isValidCommand($commandArray[0])) {
+
+                                HandleCommandProcess::runCommandOnContent($command, $contentData, $message, $message->user_id === $ownerId, $commandArray);
                             }
                         }
                     } catch (\Exception $e) {

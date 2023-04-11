@@ -4,41 +4,95 @@ namespace App\Core\commands;
 
 
 use App\Models\Anne;
+use Illuminate\Support\Facades\Log;
 
 class HandleCommandProcess
 {
 
-    public static function isValidCommand($command){
-    $commandList = [
-        'ping',
-        'help',
-        'earmuffs',
-    ];
+    public static function isValidCommand($command)
+    {
+        Log::debug("command in: " . $command);
+        $commandList = [
+            'ping',
+            'help',
+            'earmuffs',
+            'debug'
+        ];
 
-    return in_array($command, $commandList, true);
+        return in_array($command, $commandList, true);
     }
-    public static function runCommandOnContent($command, $content, $message, $owner){
-        switch($command){
+
+    public static function runCommandOnContent($command, $content, $message, $owner, $commandArray)
+    {
+        Log::debug("Command: $command\nContent: $content\nMessage: $message\nOwner: $owner");
+
+        $arg = "";
+
+        foreach($commandArray as $index=>$commandPart){
+           if ($index === 0){
+               $command = $commandPart;
+           }else {
+               $arg = $commandPart;
+           }
+        }
+
+        Log::debug("Command: $command\nArgs: $arg");
+
+        switch ($command) {
+
+            //ping command
             case 'ping':
-            return $message->reply("Oh I'll ping you, pal.");
+                return $message->reply("Oh I'll ping you, pal.");
+
+            //help command
             case 'help':
                 $activeCommand = (new HelpCommand)->index($message, $content);
                 return $activeCommand->index($message, $content);
+
+            //earmuffs (respond to owner only)
             case 'earmuffs':
-                if($owner) {
-                    if ($content === 'on') {
-                        $anne = Anne::find(1)->earmuffs(true);
+                if ($owner) {
+                    if ($arg === 'on') {
+                        $anne = Anne::all()->first()->earmuffsToggle(true);
                         $anne->save();
+                        Log::debug("on - " . json_encode($anne, 128));
                         return $message->reply("Earmuffs are on.");
-                    } elseif ($content === 'off') {
-                        $anne = Anne::find(1)->earmuffs(false);
+                    } elseif ($arg === 'off') {
+                        $anne = Anne::all()->first()->earmuffsToggle(false);
                         $anne->save();
+                        Log::debug("off - " . json_encode($anne, 128));
                         return $message->reply("Earmuffs are off.");
                     } else {
-                        return $message->reply("Earmuffs are currently " . Anne::find(1)->earmuffs);
+                        return $message->reply("Earmuffs are currently " . ((boolean)Anne::all()->first()->earmuffs ? 'on' : 'off'));
                     }
-                }else break;
+                } else {
+                    return $message->reply("No you're not even my real dad you put on the earmuffs.");
+                }
+                break;
+
+            //debug toggle
+            case 'debug':
+                if ($owner) {
+                    if ($arg === 'on') {
+                        $anne = Anne::all()->first()->debugToggle(true);
+                        $anne->save();
+                        Log::debug("on - " . json_encode($anne, 128));
+                        return $message->reply("Debug mode is on.");
+                    } elseif ($arg === 'off') {
+                        $anne = Anne::all()->first()->debugToggle(false);
+                        $anne->save();
+                        Log::debug("off - " . json_encode($anne, 128));
+                        return $message->reply("Debug mode is off.");
+                    } else {
+                        return $message->reply("Debug mode is currently " . ((boolean)Anne::all()->first()->debug ? 'on' : 'off'));
+                    }
+                } else {
+                    return $message->reply("How about instead of debug me we many bees you?");
+                }
+                break;
+            default:
+                return $message->reply("Uh... sure.");
+        }
     }
-}
 
 }
