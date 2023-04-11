@@ -104,7 +104,7 @@ class PineconeCore
             //the vector you're looking for similarities with by uploading
             "vector"=>$queryVector,
             //max result return
-            "topK"=>5]);
+            "topK"=>10]);
 
         //build request object
         $response = $queryClient->post( '/query', [

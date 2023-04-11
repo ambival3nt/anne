@@ -8,6 +8,7 @@ use App\Core\OpenAI\Prompts\analyzeUserInput;
 use App\Core\OpenAI\Prompts\ZiggyBasilisk;
 use App\Core\VectorDB\PineconeCore;
 use App\Jobs\UpsertToPineconeJob;
+use App\Models\Anne;
 use App\Models\AnneMessages;
 use App\Models\Messages;
 use App\Models\Person;
@@ -17,6 +18,7 @@ use Discord\Parts\Channel\Message;
 use Discord\Parts\User\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use MathPHP\Statistics\Distance;
 use OpenAI\Laravel\Facades\OpenAI;
 
 class OpenAICore
@@ -92,9 +94,6 @@ class OpenAICore
 
                 //add any preload prompts etc
                 $promptWithPreloads = $prompt . $promptRemoveTag;
-
-                //get vector for user's message
-                $userEmbed = $this->buildEmbedding($promptRemoveTag)->embeddings[0]->embedding;
 
                 // Query pinecone with the user embedding
                 $vectorQueryResult = new PineconeCore;
@@ -191,9 +190,11 @@ class OpenAICore
                     'response' => $responsePath
                 ]);
 
+                //Get cosine similarity locally (for testing, maybe permanent)
+                $cosineSimilarity = Distance::cosineSimilarity($userEmbed, $anneEmbed);
+
                 //send embeds to vector db
                 $this->sendToPineconeAPI($userEmbed, ['id' => (string)$messageModel->id], (string)$person->id, $anneEmbed);
-
 
                 //init Anne's message model
                 $anneMessage = new AnneMessages();
@@ -212,6 +213,11 @@ class OpenAICore
                 Log::debug($e->getMessage());
                 return $message->reply($e->getMessage() . " on line " . $e->getLine() . " in " . $e->getFile() . " you stupid dumb shit god damn motherfuckerrrrrrr haha <3 fuck you");
                 //    return $message->reply('For some reason I cannot explain, I do not have an answer.');
+            }
+
+            //todo: if this debug shit all works move it to its own class to be invoked anywhere we need it
+            if(Anne::all()->first()->debug){
+                $responsePath .= "\nCosine Similarity: " . $cosineSimilarity;
             }
 
             return $message->reply($responsePath);
@@ -360,9 +366,10 @@ class OpenAICore
         $vectorQueryResult = new PineconeCore;
         $vectorQueryResult = $vectorQueryResult->query($userEmbed);
 
-
-        $mask = "|%5.5s | %10.10s | %10.10s | %-20.20s | %-40.40s |\n";
-        $anneOutput = "```" . sprintf($mask, 'Id', 'Score', 'Date', 'User', 'Message');
+        //format the output
+        $mask = "|%5.5s | %10.10s | %10.10s | %-20.20s | %-55.55s |\n";
+        $anneOutput = "```\n
+        Input: $promptRemoveTag\n" . sprintf($mask, 'Id', 'Score', 'Date', 'User', 'Message');
 
         foreach ($vectorQueryResult['matches'] as $result) {
 

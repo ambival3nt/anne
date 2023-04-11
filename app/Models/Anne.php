@@ -19,17 +19,33 @@ class Anne extends Model
         'last_user',
         'last_response',
         'earmuffs',
+        'debug',
     ];
 
-    public function earmuffs($val)
+    //toggles earmuffs (makes her only listen to the owner)
+    public function earmuffsToggle($val)
     {
-        $anne = Anne::find(1);
+//        $anne = Anne::all()->first();
         if($val === true){
-            $anne->earmuffs = true;
+//            $anne->earmuffs = true;
+            $this->earmuffs = true;
         }else{
-            $anne->earmuffs = false;
+            $this->earmuffs = false;
         }
-        $anne->save();
-        return($anne->earmuffs);
+        $this->save();
+        return $this;
+    }
+
+    //toggle debug mode (makes her output various debug info)
+    public function debugToggle($val)
+    {
+//        $anne = Anne::all()->first();
+        if($val === true){
+            $this->debug = true;
+        }else{
+            $this->debug = false;
+        }
+        $this->save();
+        return $this;
     }
 }
