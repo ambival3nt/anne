@@ -12,13 +12,16 @@ use App\Models\Anne;
 use App\Models\AnneMessages;
 use App\Models\Messages;
 use App\Models\Person;
+use Discord\Builders\MessageBuilder;
 use Discord\Discord;
 use Discord\Parts\Channel\Channel;
 use Discord\Parts\Channel\Message;
 use Discord\Parts\User\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use MathPHP\Statistics\Distance;
+use OpenAI\Client;
 use OpenAI\Laravel\Facades\OpenAI;
 
 class OpenAICore
@@ -31,7 +34,7 @@ class OpenAICore
         $this->analyzeUserInputFormatted = new analyzeUserInput();
     }
 
-    public function query($message, $discord, $mention = null, $useGpt = false)
+    public function query($message, $discord, $mention = null, $reply=null, $useGpt = false)
     {
 
 
@@ -78,7 +81,7 @@ class OpenAICore
 
             //is someone mentionining anne? (evidently this covers replies too)
         } elseif ($mention) {
-            $promptRemoveTag = str_replace('@' . $mention->id, 'you', $message->content);
+            $promptRemoveTag = str_replace('@' . $mention->id, 'anne', $message->content);
 
             //standard query
         } elseif (str_starts_with(strtolower($message->content), "anne,") && !$message->author->bot) {
@@ -230,12 +233,26 @@ class OpenAICore
             ]);
 
 
-            return $message->reply($result['data'][0]['url']);
+           $image = file_get_contents($result['data'][0]['url']);
+           Log::debug(json_encode($image));
+           $filename = 'discordUpload' . Carbon::now()->toDateTimeString().'.png';
+           $put = file_put_contents($filename, $image);
+           Log::debug(json_encode($put));
+           $builder = MessageBuilder::new();
+
+            $builder->addFile($filename);
+
+            return $message->reply($builder);
+
+//           return Discord::
+
+//            return $message->reply($result['data'][0]['url']);
         }
 
         else{
             return "Something went wrong.";
         }
+
     }
 
     public function buildEmbedding($message)
@@ -293,29 +310,8 @@ class OpenAICore
 
         // if using ChatGPT3.5Turbo
         if($useGpt){
-            $gptPrompt[] = ['role'=>'system',
-                'content'=>'Your name is Anne. You are a member of a discord community, and you are speaking with other members of the community.\n
-            Interact with the users, answer their questions, and use the provided information to help define who you are and provided past messages to help you
-            recall past conversations you have had.'];
-
-            $gptPrompt[]=[
-                'role'=> 'user',
-                'content'=>CommonKnowledge::selfAwareness(),
-            ];
-
-            $gptPrompt[]=[
-                'role'=> 'system',
-                'content'=>CommonKnowledge::temporalAwareness(),
-            ];
-
-            $gptPrompt[]=[
-                'role'=> 'user',
-                'content'=>CommonKnowledge::basicInstructions(),
-            ];
-
+            $gptPrompt = $this->getGptPrompt($gptPrompt);
         }
-
-
 
         $prompt = CommonKnowledge::selfAwareness() . "\n\n";
 
@@ -490,9 +486,13 @@ class OpenAICore
                     //same shit as anne's but the inverse, we include anne's message after the fact
                     $vectorPrompt .= "\n" .
                         $date = '[' . $result->metadata->dateTime . '] ' .  $user . ": '" . $messageOutput;
-                    $vectorPrompt .= "\n" .
-                        $date = '[' . Carbon::parse($anneReplyMessage->created_at)->toDateTimeString() . '] ' .  'You: ' . trim($anneReplyMessage->message);
-                }
+                    if($anneReplyMessage) {
+                        $vectorPrompt .= "\n" .
+                            $date = '[' . Carbon::parse(data_get($anneReplyMessage, 'created_at', null)->toDateTimeString()) . '] ' . 'You: ' . trim($anneReplyMessage->message);
+                    }else{
+                        Log::debug('Missing Anne response for messageId #'. $id . ". Expected: " . (string)$messageData->anneReply->id ?? '[!missing!]');
+                    }
+                    }
 
 
             }
@@ -628,5 +628,33 @@ class OpenAICore
     $return = $result['choices'][0]['text'];
     return $return;
 
+    }
+
+    /**
+     * @param array $gptPrompt
+     * @return array
+     */
+    protected function getGptPrompt(array $gptPrompt): array
+    {
+        $gptPrompt[] = ['role' => 'system',
+            'content' => 'Your name is Anne. You are a member of a discord community, and you are speaking with other members of the community.\n
+            Interact with the users, answer their questions, and use the provided information to help define who you are and provided past messages to help you
+            recall past conversations you have had.'];
+
+        $gptPrompt[] = [
+            'role' => 'user',
+            'content' => CommonKnowledge::selfAwareness(),
+        ];
+
+        $gptPrompt[] = [
+            'role' => 'system',
+            'content' => CommonKnowledge::temporalAwareness(),
+        ];
+
+        $gptPrompt[] = [
+            'role' => 'user',
+            'content' => CommonKnowledge::basicInstructions(),
+        ];
+        return $gptPrompt;
     }
 }

@@ -4,7 +4,9 @@ namespace App\Core\commands;
 
 
 use App\Models\Anne;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use phpw2v\Word2Vec;
 
 class HandleCommandProcess
 {
@@ -16,7 +18,8 @@ class HandleCommandProcess
             'ping',
             'help',
             'earmuffs',
-            'debug'
+            'debug',
+            'embed',
         ];
 
         return in_array($command, $commandList, true);
@@ -89,6 +92,18 @@ class HandleCommandProcess
                 } else {
                     return $message->reply("How about instead of debug me we many bees you?");
                 }
+                break;
+            case 'embed':
+                $time1 = Carbon::now();
+                $vecThing = new Word2Vec();
+                $embed = $vecThing->wordVec($arg);
+                $time2 = Carbon::now();
+                $timeDiff = $time1->diffInMilliseconds($time2);
+                $output =
+                    "Input: $arg\n
+                    Output: " . json_encode($embed) ."\n
+                    Took: " . $timeDiff ."ms";
+                return $message->reply($output);
                 break;
             default:
                 return $message->reply("Uh... sure.");

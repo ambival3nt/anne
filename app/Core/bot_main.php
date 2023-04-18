@@ -9,6 +9,7 @@ use App\Core\config\InitBotConfig;
 use App\Core\OpenAI\OpenAICore;
 use App\Models\Anne;
 use Discord\Discord;
+use Discord\Http\Drivers\React;
 use Discord\Parts\Channel\Message;
 use Discord\WebSockets\Intents;
 use App\Core\commands\HandleCommandProcess;
@@ -56,14 +57,13 @@ class bot_main
 
                 if($message->referenced_message!==null){
                     if ($message->referenced_message === $discord->id && !$message->author->bot) {
-                        Log::debug('i detect a reply');
-                        Log::debug(json_encode($message->referenced_message));
+                        $reply = $message->referenced_message ?? null;
                     }
                 }
 
 
                 //if earmuffs are on, bot will only respond to owner
-                if(!$selfInfo->earmuffs || ($message->author->id === $ownerId && $selfInfo->earmuffs)) {
+                if($selfInfo->earmuffs===0 || ($message->author->id === $ownerId && $selfInfo->earmuffs===1)) {
 
                     //if it's talking to anne, or if it's mentioned, or if it's a test command
                     try {
@@ -73,10 +73,17 @@ class bot_main
                             || str_starts_with(strtolower($message->content), '-=think')
                         ) {
 
-                            $anne = new OpenAICore();
+                            $discord->getChannel($message->channel_id)->broadcastTyping()
+                                ->then(function () use ($message, $discord, $mention) {
+                                $anne = new OpenAICore();
+                                $anne->query($message, $discord, $mention);
+
+                            })->done();
 
 
-                            $anne->query($message, $discord, $mention);
+
+
+
 
                         }
 
@@ -99,16 +106,11 @@ class bot_main
                         //command tag path
                         if (str_starts_with($message->content, $commandTag['tag']) && !$message->author->bot) {
 
-                            Log::debug("input: " . $message->content);
+
                             $contentData = "";
                             $commandHasContent = stripos($message->content, ' ') && " ";
                             $command = substr($message->content, $commandTag['tagLength']);
                             $commandArray = explode(' ', $command);
-
-                                Log::debug("command " . $command);
-                                Log::debug("command array " . json_encode($commandArray,128));
-                                Log::debug("message content " . $message->content);
-
 
                             if (HandleCommandProcess::isValidCommand($commandArray[0])) {
 
