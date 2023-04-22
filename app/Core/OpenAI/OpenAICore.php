@@ -3,6 +3,7 @@
 namespace App\Core\OpenAI;
 
 use App\Core\config\CommonKnowledge;
+use App\Core\GooseAI\GooseAICore;
 use App\Core\Memory\messageHistoryHandler;
 use App\Core\OpenAI\Prompts\analyzeUserInput;
 use App\Core\OpenAI\Prompts\ZiggyBasilisk;
@@ -36,7 +37,9 @@ class OpenAICore
 
     public function query($message, $discord, $mention = null, $reply=null, $useGpt = false)
     {
+        $anneModel = (new Anne())->all()->first();
 
+        $prompt = "";
 
         //init query
         list(
@@ -105,9 +108,10 @@ class OpenAICore
                 //parse vectors into prompt
                 $promptWithVectors = $this->addHistoryFromVectorQuery($resultArray, $promptWithPreloads) ?? "";
 
+
                 //If using GPT api and format
                 if($useGpt){
-
+                    $message->reply('im dumb and using the gpt route');
                     $gptPrompt[] = [
                         'role'=>'user',
                         'content'=>$promptRemoveTag
@@ -127,30 +131,35 @@ class OpenAICore
                     }
                 }
 
-                $promptWithPreloads .= "-----\n" . $promptWithVectors;
-                $promptWithPreloads .= "\nUser says: $promptRemoveTag\n\n
+
+                $promptWithVectors .= "\nUser says: $promptRemoveTag\n\n
 
                 Anne says: ";
 
                 //get davinci response
 
                 if(!$useGpt){
-                    $result = OpenAI::completions()->create(['model' => 'text-davinci-003',
-                            'prompt' => $promptWithPreloads,
-//                        'top_p' => .25,
-                            'temperature' => 0.75,
-                            'max_tokens' => 600,
-                            'stop' => [
-                                '-----',
-                            ],
-                            'frequency_penalty' => 0.4,
-                            'presence_penalty' => 1.2,
-                            'best_of' => 2,
-                            'n' => 1,
-                        ]
-                    );
+//                    $result = OpenAI::completions()->create(['model' => 'text-davinci-003',
+//                            'prompt' => $promptWithPreloads,
+////                        'top_p' => .25,
+//                            'temperature' => 0.75,
+//                            'max_tokens' => 600,
+//                            'stop' => [
+//                                '-----',
+//                            ],
+//                            'frequency_penalty' => 0.4,
+//                            'presence_penalty' => 1.2,
+//                            'best_of' => 2,
+//                            'n' => 1,
+//                        ]
+//                    );
 
-                    $responsePath = $result['choices'][0]['text'];
+                    $result = new GooseAICore();
+
+                    $result = $result->gooseInit($promptWithVectors);
+
+                    $responsePath = $result;
+                    Log::debug($responsePath);
                 }else{
                     //get gpt4 response
                     $result = OpenAI::chat()->create(['model' => 'gpt-3.5-turbo',
@@ -160,6 +169,7 @@ class OpenAICore
                             'max_tokens' => 600,
                             'stop' => [
                                 '-----',
+                                '<|endoftext|>',
                             ],
                             'frequency_penalty' => 0.5,
                             'presence_penalty' => 1,
@@ -171,7 +181,7 @@ class OpenAICore
                     );
                     $responsePath=$result->choices[0]->message->content;
                 }
-                Log::debug(json_encode($result));
+
 
                 //update person model
                 $person->update([
@@ -194,8 +204,9 @@ class OpenAICore
                 ]);
 
                 //Get cosine similarity locally (for testing, maybe permanent)
-                $cosineSimilarity = Distance::cosineSimilarity($userEmbed, $anneEmbed);
-
+                if($anneModel->debug) {
+                    $cosineSimilarity = Distance::cosineSimilarity($userEmbed, $anneEmbed);
+                }
                 //send embeds to vector db
                 $this->sendToPineconeAPI($userEmbed, ['id' => (string)$messageModel->id], (string)$person->id, $anneEmbed);
 
@@ -214,16 +225,16 @@ class OpenAICore
 
             } catch (\Exception $e) {
                 Log::debug($e->getMessage());
-                return $message->reply($e->getMessage() . " on line " . $e->getLine() . " in " . $e->getFile() . " you stupid dumb shit god damn motherfuckerrrrrrr haha <3 fuck you");
+                return $message->reply($promptWithPreloads);
                 //    return $message->reply('For some reason I cannot explain, I do not have an answer.');
             }
 
             //todo: if this debug shit all works move it to its own class to be invoked anywhere we need it
-            if(Anne::all()->first()->debug){
+            if($anneModel->debug){
                 $responsePath .= "\nCosine Similarity: " . $cosineSimilarity;
             }
 
-            return $message->reply($responsePath);
+            return $message->reply(substr($responsePath,0,1999));
         }elseif (str_starts_with($message->content, "anne show me ") && !$message->author->bot) {
 
             $result = OpenAI::images()->create([
@@ -425,7 +436,10 @@ class OpenAICore
 
             //only use vectors with score above the threshhold (hardcoded to .79 for now, this will eventually move to front end)
             foreach ($resultArray['matches'] as $result) {
-                if ($result->score < 0.79) {
+        if(!$result){
+            continue;
+        }
+               if ($result->score < 0.79) {
                     continue;
                 }
                 $isAnne = false;
@@ -503,8 +517,11 @@ class OpenAICore
             Log::debug("Vector prompt preload error.");
         }
         //get summary from other model
-        $summarized = $this->summarizeVectorResult($vectorPrompt);
-
+        if($vectorPrompt) {
+            $summarized = $this->summarizeVectorResult($vectorPrompt);
+        }else{
+            $summarized = "No relevant messages found.";
+        }
         //Take the pre-prompt, which already has the user input, add some instructions for this, attach summarized chat history, return to main function
         $result = $promptWithPreloads .
             "Here is a summary of related conversations from your memory.\n
