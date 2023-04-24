@@ -64,7 +64,6 @@ class analyzeUserInput
                 'n' => 1,
             ]
         );
-        Log::debug(json_encode($result, 128));
         return $result['choices'][0]['text'];
 
     }

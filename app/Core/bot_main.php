@@ -73,13 +73,14 @@ class bot_main
                             || str_starts_with(strtolower($message->content), '-=think')
                         ) {
 
-                            $discord->getChannel($message->channel_id)->broadcastTyping()
-                                ->then(function () use ($message, $discord, $mention) {
-                                $anne = new OpenAICore();
-                                $anne->query($message, $discord, $mention);
-
-                            })->done();
-
+//                            $discord->getChannel($message->channel_id)->broadcastTyping()
+//                                ->then(function () use ($message, $discord, $mention) {
+//                                $anne = new OpenAICore();
+//                                $anne->query($message, $discord, $mention);
+//
+//                            })->done();
+                            $anne = new OpenAICore();
+                            $anne->query($message, $discord, $mention);
 
 
 

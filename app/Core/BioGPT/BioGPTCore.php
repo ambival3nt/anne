@@ -48,7 +48,7 @@ try {
         ];
     } else {
         $output = $response->getBody()->getContents();
-        Log::debug($output);
+
         $format = str_ireplace(`][{"generated_text". < / FREETEXT > < / TITLE > ▃ < ABSTRACT > < FREETEXT > '`, "", $output);
         return $format;
     }

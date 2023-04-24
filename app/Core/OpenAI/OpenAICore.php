@@ -108,30 +108,6 @@ class OpenAICore
                 //parse vectors into prompt
                 $promptWithVectors = $this->addHistoryFromVectorQuery($resultArray, $promptWithPreloads) ?? "";
 
-
-                //If using GPT api and format
-                if($useGpt){
-                    $message->reply('im dumb and using the gpt route');
-                    $gptPrompt[] = [
-                        'role'=>'user',
-                        'content'=>$promptRemoveTag
-                    ];
-
-                    $gptPrompt[] = $this->addHistoryFromVectorQueryGPT($resultArray);
-
-                    $gptPrompt[] = [
-                        'role'=>'user',
-                        'content'=>$promptRemoveTag
-                    ];
-
-                    $gptPromptJson = [];
-
-                    foreach($gptPrompt as $gpt){
-                        $gptPromptJson[] = json_decode(json_encode($gpt));
-                    }
-                }
-
-
                 $promptWithVectors .= "\nUser says: $promptRemoveTag\n\n
 
                 Anne says: ";
@@ -139,47 +115,28 @@ class OpenAICore
                 //get davinci response
 
                 if(!$useGpt){
-//                    $result = OpenAI::completions()->create(['model' => 'text-davinci-003',
-//                            'prompt' => $promptWithPreloads,
-////                        'top_p' => .25,
-//                            'temperature' => 0.75,
-//                            'max_tokens' => 600,
-//                            'stop' => [
-//                                '-----',
-//                            ],
-//                            'frequency_penalty' => 0.4,
-//                            'presence_penalty' => 1.2,
-//                            'best_of' => 2,
-//                            'n' => 1,
-//                        ]
-//                    );
-
-                    $result = new GooseAICore();
-
-                    $result = $result->gooseInit($promptWithVectors);
-
-                    $responsePath = $result;
-                    Log::debug($responsePath);
-                }else{
-                    //get gpt4 response
-                    $result = OpenAI::chat()->create(['model' => 'gpt-3.5-turbo',
-                            'messages' => $gptPromptJson,
+                    $result = OpenAI::completions()->create(['model' => 'text-davinci-003',
+                            'prompt' => $promptWithPreloads,
 //                        'top_p' => .25,
-                            'temperature' => 0.5,
+                            'temperature' => 0.75,
                             'max_tokens' => 600,
                             'stop' => [
                                 '-----',
-                                '<|endoftext|>',
                             ],
-                            'frequency_penalty' => 0.5,
-                            'presence_penalty' => 1,
-//                        'best_of' => 3,
+                            'frequency_penalty' => 0.4,
+                            'presence_penalty' => 1.2,
+                            'best_of' => 2,
                             'n' => 1,
-
-
                         ]
                     );
-                    $responsePath=$result->choices[0]->message->content;
+
+                    $responsePath = $result['choices'][0]['text'];
+//                    $result = new GooseAICore();
+//
+//                    $result = $result->gooseInit($promptWithVectors);
+//
+//                    $responsePath = $result;
+
                 }
 
 
@@ -224,8 +181,8 @@ class OpenAICore
 
 
             } catch (\Exception $e) {
-                Log::debug($e->getMessage());
-                return $message->reply($promptWithPreloads);
+
+                return $message->reply(substr($responsePath,0,1999));
                 //    return $message->reply('For some reason I cannot explain, I do not have an answer.');
             }
 
@@ -245,10 +202,10 @@ class OpenAICore
 
 
            $image = file_get_contents($result['data'][0]['url']);
-           Log::debug(json_encode($image));
+
            $filename = 'discordUpload' . Carbon::now()->toDateTimeString().'.png';
            $put = file_put_contents($filename, $image);
-           Log::debug(json_encode($put));
+
            $builder = MessageBuilder::new();
 
             $builder->addFile($filename);
@@ -490,8 +447,6 @@ class OpenAICore
                     }
                     //same shit BUT we need to grab anne's response too, which I'm pretty sure I set up a relationship for
                     $anneReplyMessage = $messageData->anneReply ?? null;
-
-                    Log::debug(json_encode($anneReplyMessage, 128));
 
                     $messageOutput = $messageData['message'] ?? 'Could not load message.';
                     $people = new Person;

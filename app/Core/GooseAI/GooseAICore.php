@@ -13,7 +13,7 @@ class GooseAICore
 {
     public function gooseInit($promptWithPreloads)
     {
-        $engineId = 'gpt-neo-2-7b';
+        $engineId = 'convo-6b';
 
 
         $client = new \GuzzleHttp\Client();
@@ -33,14 +33,19 @@ class GooseAICore
                                 '-----',
                                 '<|endoftext|>',
                             ],
-//                            'frequency_penalty' => 0.4,
-//                            'presence_penalty' => 1.2,
+                            'frequency_penalty' => 1,
+                            'presence_penalty' => 1,
 //                            'best_of' => 2,
                             'n' => 1,
             ]
         ]);
-        Log::debug($response->getBody());
+
+        $json =$response->getBody()->getContents();
+        $jsonDecoded = json_decode($json);
+        Log::debug(json_encode($jsonDecoded, 128));
+
+
 //        Log::debug(json_decode($response->getBody()->read(42621))->choices[0]->text);
-        return $response->getBody();
+        return $jsonDecoded->choices[0]->text;
     }
     }
