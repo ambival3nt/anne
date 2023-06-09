@@ -8,6 +8,40 @@ use OpenAI\Laravel\Facades\OpenAI;
 class analyzeUserInput
 {
 
+    public function actions($input, $user){
+        $prompt= "You are an AI that analyzes user input. You have a list of available commands at your disposal. \n
+        Here are those commands, carefully familiarize yourself with them:\n
+        ". $this->modelCommands($input,$user) . "\n----\n
+        Your task is to return appropriate commands to handle the user's request. If none do, then return 'none'.\n
+        Multiple is fine. Carefully consider each command.\n
+        Put each selected command on its own line, properly formatted.\n
+        Do not change the user's input.\n\n
+        -----
+        User: $input
+        -----\n\n
+        Your response:\n
+        "
+        ;
+
+        $result = OpenAI::completions()->create(['model' => 'text-davinci-002',
+                'prompt' => $prompt,
+//                        'top_p' => .25,
+                'temperature' => .25,
+                'max_tokens' => 600,
+                'stop' => [
+                    '-----',
+                ],
+                'frequency_penalty' => 1.2,
+                'presence_penalty' => 1.2,
+                'best_of' => 2,
+                'n' => 1,
+            ]
+        );
+        Log::debug(json_encode($result, 128));
+        return $result['choices'][0]['text'];
+
+    }
+
     public function formatted(string $input, string $user)
     {
 
@@ -68,7 +102,55 @@ class analyzeUserInput
         return $result['choices'][0]['text'];
 
     }
+public function modelCommands($input, $user){
 
+        $prompt = "
+            Command: -save\n
+            Example Case: User says 'Remember this code for me.'\n
+             Description: Saves user request to the database.\n
+             Usage: -save [data type] [data]\n
+            Example Output: -save ".gettype($input)." $input\n
+            -----
+            Command: -get\n
+            Example Case: User says 'What was that code again?'\n
+            Description: Query user request from the database.\n
+            Usage: -get [data type] [data]\n
+            Example Output: -get ".gettype($input)." $input\n
+            -----
+            Command: -websearch\n
+            Example Case: User says 'search for...'\n
+            Description: Searches the internet for user query.\n
+            Usage: -websearch [input]\n
+            Example Output: -websearch $input\n
+            -----
+            Command: -recall\n
+            Example Case: User says 'do you remember when...'\n
+            Description: Recalls a specific previous message from a user.\n
+            Usage: -recall [user] [input]\n
+            Example Output: -recall $user $input\n
+            -----
+            Command: -ban\n
+            Example Case: User says 'Ban @user for being a dick'\n
+            Description: Bans a user from the server.\n
+            Usage: -ban [user]\n
+            Example Output: -ban $user\n
+            -----
+            Command: -like\n
+            Example Case: User says something polite, kind, or positive.\n
+            Description: Like a message, increase user's reputation.\n
+            Usage: -like [user]\n
+            Example Output: -like $user\n
+            -----
+            Command: -dislike\n
+            Example Case: User says something rude, mean, or aggressive.\n
+            Description: Dislike a message, decrease user's reputation.\n
+            Usage: -dislike [user]\n
+            Example Output: -dislike $user\n
+            -----
+            ";
+
+        return $prompt;
+}
     public function basic(string $input, string $user){
 
       $prompt = "

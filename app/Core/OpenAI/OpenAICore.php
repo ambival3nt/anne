@@ -34,7 +34,7 @@ class OpenAICore
         $this->analyzeUserInputFormatted = new analyzeUserInput();
     }
 
-    public function query($message, $discord, $mention = null, $reply=null, $useGpt = false)
+    public function query($message, $discord, $mention = null, $reply=null, $useGpt = false, $lastMessage)
     {
 
 
@@ -48,7 +48,16 @@ class OpenAICore
         $promptRemoveTag = null;
 
 
+if($message->content === '-=spam'){
 
+    $encodedArray = str_split(json_encode($message, 128), 2000);
+
+   foreach($encodedArray as $item){
+    Log::debug($item);
+       $message->reply($item);
+   }
+
+}
 //Test route for anne's brain///////////////////////////
         if (str_starts_with($message->content, "-=think") && !$message->author->bot) {
             try {
@@ -126,11 +135,12 @@ class OpenAICore
                         $gptPromptJson[] = json_decode(json_encode($gpt));
                     }
                 }
+                $userName= $message->author->displayname;
 
                 $promptWithPreloads .= "-----\n" . $promptWithVectors;
-                $promptWithPreloads .= "\nUser says: $promptRemoveTag\n\n
+                $promptWithPreloads .= "\n User: $promptRemoveTag\n\n
 
-                Anne says: ";
+                Anne: ";
 
                 //get davinci response
 
@@ -138,12 +148,13 @@ class OpenAICore
                     $result = OpenAI::completions()->create(['model' => 'text-davinci-003',
                             'prompt' => $promptWithPreloads,
 //                        'top_p' => .25,
-                            'temperature' => 0.75,
+                            'temperature' => 1,
                             'max_tokens' => 600,
                             'stop' => [
                                 '-----',
                             ],
-                            'frequency_penalty' => 0.4,
+
+                            'frequency_penalty' => 1.2,
                             'presence_penalty' => 1.2,
                             'best_of' => 2,
                             'n' => 1,
@@ -161,8 +172,8 @@ class OpenAICore
                             'stop' => [
                                 '-----',
                             ],
-                            'frequency_penalty' => 0.5,
-                            'presence_penalty' => 1,
+                            'frequency_penalty' => 1.2,
+                            'presence_penalty' => 1.2,
 //                        'best_of' => 3,
                             'n' => 1,
 
@@ -320,7 +331,7 @@ class OpenAICore
         $prompt .= CommonKnowledge::basicInstructions() . "\n\n";
 
         $personName = $message->author->username;
-        $personNameShown = $message->author->displayname;
+        $personNameShown = $message->member->nick;
         $personId = $message->author->id;
 
 
@@ -332,7 +343,7 @@ class OpenAICore
         // is it their first message? if not, let's add their stuff to the prompt
         if ($person->message_count > 0) {
 
-//            $prompt = messageHistoryHandler::addMostRecentMessage($prompt, $person, $personNameShown);
+
             $prompt = messageHistoryHandler::addMostRecentMessage($prompt, $person, $personNameShown);
 
             if($useGpt){
@@ -349,7 +360,7 @@ class OpenAICore
     /**
      * @param $message
      * @return mixed
-     * This is the output for the vector test list that you get from the test command. it does NOT affect the regular query response.
+     * This is the output for the vector test list that you get from the test command. No effect on regular response.
      */
     protected function vectorQueryReturnTest($message): mixed
     {
@@ -418,14 +429,14 @@ class OpenAICore
 
     private function addHistoryFromVectorQuery(array $resultArray, string $promptWithPreloads)
     {
-//        $vectorPrompt = $promptWithPreloads .
+
          $vectorPrompt =   "";
 
         try {
 
             //only use vectors with score above the threshhold (hardcoded to .79 for now, this will eventually move to front end)
             foreach ($resultArray['matches'] as $result) {
-                if ($result->score < 0.79) {
+                if ($result->score < 0.81) {
                     continue;
                 }
                 $isAnne = false;
@@ -508,9 +519,8 @@ class OpenAICore
         //Take the pre-prompt, which already has the user input, add some instructions for this, attach summarized chat history, return to main function
         $result = $promptWithPreloads .
             "Here is a summary of related conversations from your memory.\n
-            Use it as a reference for your response.\n
-            If you think part of this summary is not relevant to this conversation, you can ignore it.\n
-            You are not required to include the date, and should not unless it is important.\n
+            Use it or parts of it as a reference for your response, if it's relevant. Otherwise, you can ignore.\n
+
             \n\nSummary:\n"
             . $summarized;
 
@@ -595,21 +605,21 @@ class OpenAICore
     private function summarizeVectorResult(string $vectorPrompt)
     {
 
-        $summaryPrompt = "You are a chatbot AI. Your current task is to summarize your chat history. You will be given a list of messages with timestamps.
-        You are to output a summary of the messages, in a way that is optimized for a separate prompt that will be given to you later,
-        which you can reference as your long-term memory.\n\n".
-            "If a message starts with 'You: ' then you said it. If it starts with another name, then that's the user who said it.\n\n".
-            "If the message refers to 'anne', that means its referring to you.\n\n"
+        $summaryPrompt = "You are a chat summary AI. Your current task is to summarize your chat history. You will be given a list of messages with timestamps.
+        You are to output a summary of the messages, in a way that is optimized as a prompt to give to a GPT-3 chatbot.\n\n
+
+            If a message starts with 'You: ' then the bot said it. Anything else, that's the user who said it.\n\n".
+            "If the message refers to 'anne', that means its referring to the GPT-3 chatbot you are summarizing for.\n\n"
             . "-----\n\n"
-            ."Example Input:\n\n"
-            ."[2023-03-01 12:29:48] ambi: What do you think of gils?\n\n
-            [2023-03-01 12:29:50] You: I think gils is great!\n\n
-            [2023-03-14 11:29:48] gils: What do I think of gils?\n\n
-            [2023-03-14 11:29:50] You: Yes, of yourself.\n\n
+            ."Input:\n\n"
+            ."[2023-03-01 12:29:48] ambi: What do you think of cheese?\n\n
+            [2023-03-01 12:29:50] You: I think cheese is great!\n\n
+            [2023-03-14 11:29:48] gils: What do I think of cats?\n\n
+            [2023-03-14 11:29:50] You: Yes, of cats.\n\n
             ----- \n\n
-            Example Summary:
-            Ambi asked you what you thought of gils and you said you thought gils was great on March 1st.\n
-            Gils asked you what she thought of gils and you said yes, of herself on March 14th.\n\n
+            Summary:
+            Ambi asked you what you thought of cheese and you said you thought cheese was great on March 1st.\n
+            Gils asked you what she thought of cats and you said yes, of cats on March 14th.\n\n
             ----- \n\n"
 
             ."Input:\n\n" . $vectorPrompt . "\n\n ----- \n\n

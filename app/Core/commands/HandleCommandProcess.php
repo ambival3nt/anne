@@ -3,7 +3,10 @@
 namespace App\Core\commands;
 
 
+use App\Core\Features\Lichess;
+use App\Core\OpenAI\Prompts\analyzeUserInput;
 use App\Models\Anne;
+use App\Models\Playlist;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use phpw2v\Word2Vec;
@@ -20,26 +23,29 @@ class HandleCommandProcess
             'earmuffs',
             'debug',
             'embed',
+            'chess',
+            'spam',
+            'command',
+            'playlist',
         ];
 
         return in_array($command, $commandList, true);
     }
 
-    public static function runCommandOnContent($command, $content, $message, $owner, $commandArray)
+    public static function runCommandOnContent($command, $content, $message, $owner, $commandArray, $discord)
     {
         Log::debug("Command: $command\nContent: $content\nMessage: $message\nOwner: $owner");
 
         $arg = "";
 
-        foreach($commandArray as $index=>$commandPart){
-           if ($index === 0){
-               $command = $commandPart;
-           }else {
-               $arg = $commandPart;
-           }
+        foreach ($commandArray as $index => $commandPart) {
+            if ($index === 0) {
+                $command = $commandPart;
+            } else {
+                $arg = $commandPart;
+            }
         }
 
-        Log::debug("Command: $command\nArgs: $arg");
 
         switch ($command) {
 
@@ -101,13 +107,55 @@ class HandleCommandProcess
                 $timeDiff = $time1->diffInMilliseconds($time2);
                 $output =
                     "Input: $arg\n
-                    Output: " . json_encode($embed) ."\n
-                    Took: " . $timeDiff ."ms";
+                    Output: " . json_encode($embed) . "\n
+                    Took: " . $timeDiff . "ms";
                 return $message->reply($output);
                 break;
+
+            //lichess command
+            //TODO: have anne just catch this
+            case 'chess':
+                $lichess = new Lichess;
+                try {
+                    if (stripos($arg, 'lichess') !== false) {
+                        $lichessOutput = $lichess->exportGame(Lichess::getLichessGameId($arg));
+                    }
+                    return $message->reply($lichessOutput);
+                } catch (\Exception $e) {
+                    return $message->reply("Invalid lichess link.");
+                }
+                break;
+
+            case 'command':
+                return self::extractSelfCommand($commandArray, $command, $message);
+                break;
+
+            //test command for playlist functionality
+            case 'playlist':
+                $playlist = new Playlist;
+                return $message->channel->sendEmbed(
+             $playlist->getListForToday($discord));
+                break;
+
             default:
                 return $message->reply("Uh... sure.");
         }
+
+    }
+
+    /**
+     * @param $commandArray
+     * @param analyzeUserInput $command
+     * @param $message
+     * @return mixed
+     */
+    protected static function extractSelfCommand($commandArray, analyzeUserInput $command, $message): mixed
+    {
+        $commandBody = array_shift($commandArray);
+        $commandBody = implode(" ", $commandArray);
+        $command = new analyzeUserInput();
+        $commandList = $command->actions($commandBody, $message->author->username);
+        return $message->reply($commandList);
     }
 
 }

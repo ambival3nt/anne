@@ -19,20 +19,16 @@ class messageHistoryHandler
         $actualLastMessage = $lastMessage->message;
         $lastPerson = Person::find($lastMessage->user_id);
 
-        $prompt = $prompt . "\n\nThe person you're speaking to is $personNameShown, please refer to them by that name. For reference, they have username $person->name.\n
-                        \nThe last thing they said to you was: $person->last_message\n
-                         \nYour response to them was: $person->last_response\n
-                       \nDo not repeat your response, or anything too similar to it.\n
-        \nYou are not to end your response by asking if there is anything you can help with.\n";
-
-
-        if($lastMessage !== $person->last_message){
-            $prompt .="          \nThe last message you received was: $actualLastMessage from $lastPerson->name\n"
-            ;
-        }else{
-            $prompt .="It was the last message you received.\n";
+        if($lastMessage !== $person->last_message) {
+            $prompt .= "          \nThe last message you received was: $actualLastMessage from $lastPerson->name\n";
         }
+        $prompt = $prompt . "\n\nThe person you're speaking to now is $personNameShown, please refer to them by that name.\n
+                        \nThe last thing $personNameShown said to you was: $person->last_message\n
+                         \nYour response to them was: $person->last_response\n";
 
+        if($personNameShown !== $person->name) {
+            $person->nameMapping($personNameShown);
+        }
         return $prompt;
     }
 
