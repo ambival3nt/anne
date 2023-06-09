@@ -18,5 +18,17 @@ class Person extends Model
         'last_response',
         'last_message_time',
         'message_count',
+        'recent_alias',
     ];
+
+    public function nameMapping($currentAlias){
+        $this->recent_alias = $currentAlias;
+        $this->save();
+
+        PeopleNameMapping::firstOrCreate([
+            'person_id' => $this->id,
+            'username' => $this->name,
+            'alias' => $currentAlias,
+        ]);
+    }
 }

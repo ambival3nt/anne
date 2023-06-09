@@ -2,20 +2,16 @@
 
 namespace App\Core;
 
-use App\Core\BioGPT\BioGPTCore;
+use App\Core\commands\HandleCommandProcess;
 use App\Core\config\BotCredentials;
-use App\Core\config\CommonKnowledge;
 use App\Core\config\InitBotConfig;
+use App\Core\Features\Playlist;
 use App\Core\OpenAI\OpenAICore;
 use App\Models\Anne;
 use Discord\Discord;
-use Discord\Http\Drivers\React;
 use Discord\Parts\Channel\Message;
 use Discord\WebSockets\Intents;
-use App\Core\commands\HandleCommandProcess;
-use App\Core\commands\HelpCommand;
 use Illuminate\Support\Facades\Log;
-use OpenAI\Laravel\Facades\OpenAI;
 
 class bot_main
 {
@@ -24,6 +20,7 @@ class bot_main
 
         //initialize the bot
 
+        $lastMessage = null;
 
         $selfInfo = Anne::all()->first() ?? null;
 
@@ -42,9 +39,12 @@ class bot_main
         $discord = new Discord(['token' => $token,
             'intents' => Intents::getDefaultIntents() | Intents::MESSAGE_CONTENT]);
 
-        $discord->on('ready', function (Discord $discord) use ($commandTag, $selfInfo, $ownerId) {
+        $discord->on('ready', function (Discord $discord) use ($commandTag, $selfInfo, $ownerId, $lastMessage) {
 
-            $discord->on('message', function (Message $message, Discord $discord) use ($commandTag, $selfInfo, $ownerId) {
+            $discord->on('message', function (Message $message, Discord $discord) use ($commandTag, $selfInfo, $ownerId, $lastMessage) {
+
+                //checks for music link for playlist feature (why did i do this)
+                $this->isMusicLink($message);
 
                 $reply = null;
                 $mention = null;
@@ -71,22 +71,14 @@ class bot_main
                             || $mention
                             || str_starts_with(strtolower($message->content), '-=test')
                             || str_starts_with(strtolower($message->content), '-=think')
+                            || str_starts_with(strtolower($message->content), '-=spam')
+
                         ) {
-
-                            $discord->getChannel($message->channel_id)->broadcastTyping()
-                                ->then(function () use ($message, $discord, $mention) {
-                                $anne = new OpenAICore();
-                                $anne->query($message, $discord, $mention);
-
-                            })->done();
-
-
-
-
-
+                            $anne = new OpenAICore();
+                            $anne->query($message, $discord, $mention, null,null,$lastMessage);
 
                         }
-
+                    $lastMessage = $message;
 
                         //BioGPT query (gils this took a lot of work lol)
                         if(stripos($message->content, 'dr. anne')!==false
@@ -114,7 +106,7 @@ class bot_main
 
                             if (HandleCommandProcess::isValidCommand($commandArray[0])) {
 
-                                HandleCommandProcess::runCommandOnContent($command, $contentData, $message, $message->user_id === $ownerId, $commandArray);
+                                HandleCommandProcess::runCommandOnContent($command, $contentData, $message, $message->user_id === $ownerId, $commandArray, $discord);
                             }
                         }
                     } catch (\Exception $e) {
@@ -128,4 +120,23 @@ class bot_main
 
         $discord->run();
     }
+
+    /**
+     * @param Message $message
+     * @return void
+     */
+    function isMusicLink(Message $message): void
+    {
+        if (str_contains($message->content, 'https://') || str_contains($message->content, 'http://')) {
+            if (stripos($message->content, 'youtube.com') !== false
+                || stripos($message->content, 'youtu.be') !== false
+                || stripos($message->content, 'soundcloud.com') !== false
+                || stripos($message->content, 'spotify.com') !== false
+                || stripos($message->content, 'open.spotify.com') !== false
+            ) {
+                Playlist::grabMusicLinkUrl($message);
+            }
+        }
+    }
+
 }
