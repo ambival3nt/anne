@@ -17,4 +17,7 @@ class PeopleNameMapping extends Model
         'alias',
     ];
 
+    public function person(){
+        return $this->belongsTo(Person::class);
+    }
 }
