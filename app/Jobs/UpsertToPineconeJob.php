@@ -32,7 +32,6 @@ class UpsertToPineconeJob implements ShouldQueue
     {
         $this->vector=$vector;
         $this->id=$id;
-
         $this->discordUserId=$discordUserId;
         $this->anneEmbed=$anneEmbed;
     }

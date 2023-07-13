@@ -11,11 +11,13 @@ use App\Jobs\UpsertToPineconeJob;
 use App\Models\Anne;
 use App\Models\AnneMessages;
 use App\Models\Messages;
+use App\Models\PeopleNameMapping;
 use App\Models\Person;
 use Discord\Builders\MessageBuilder;
 use Discord\Discord;
 use Discord\Parts\Channel\Channel;
 use Discord\Parts\Channel\Message;
+use Discord\Parts\Embed\Embed;
 use Discord\Parts\User\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
@@ -34,16 +36,11 @@ class OpenAICore
         $this->analyzeUserInputFormatted = new analyzeUserInput();
     }
 
-    public function query($message, $discord, $mention = null, $reply=null, $useGpt = false, $lastMessage)
+    public function query($message, $discord, $mention = null, $reply=null, $lastMessage)
     {
 
 
-        //init query
-        list(
-            $prompt,
-            $person,
-            $gptPrompt
-            ) = $this->initQuery($message, $useGpt);
+
 
         $promptRemoveTag = null;
 
@@ -53,13 +50,12 @@ if($message->content === '-=spam'){
     $encodedArray = str_split(json_encode($message, 128), 2000);
 
    foreach($encodedArray as $item){
-    Log::debug($item);
        $message->reply($item);
    }
 
 }
 //Test route for anne's brain///////////////////////////
-        if (str_starts_with($message->content, "-=think") && !$message->author->bot) {
+        elseif (str_starts_with($message->content, "-=think") && !$message->author->bot) {
             try {
                 $m = substr($message->content, 7);
 
@@ -75,7 +71,7 @@ if($message->content === '-=spam'){
 
 
 // Vector scoring chart output/////////////////////////////////
-        if (str_starts_with($message->content, "-=test")
+        elseif (str_starts_with($message->content, "-=test")
             && !$message->author->bot
         ) {
 
@@ -91,9 +87,30 @@ if($message->content === '-=spam'){
             //is someone mentionining anne? (evidently this covers replies too)
         } elseif ($mention) {
             $promptRemoveTag = str_replace('@' . $mention->id, 'anne', $message->content);
+            //init query
+            list(
+                $prompt,
+                $person,
+                $brainArray,
+                ) = $this->initQuery($message, $discord);
 
             //standard query
         } elseif (str_starts_with(strtolower($message->content), "anne,") && !$message->author->bot) {
+            //init query
+            list(
+                $prompt,
+                $person,
+                $brainArray,
+                ) = $this->initQuery($message, $discord);
+
+            $brainEmbed = $this->buildBrainWindowEmbed($brainArray, $discord);
+
+
+            $brainBuilder = new MessageBuilder();
+            $brainBuilder->addEmbed($brainEmbed);
+//            $message->channel->createThread($brainBuilder, $message->author->username . ' ' . $message->author->discriminator . ' ' . Carbon::now()->toDateTimeString());
+//            $message->channel->sendMessage($brainBuilder);
+
 
             //chop tag off string
             $promptRemoveTag = substr($message->content, 5);
@@ -115,26 +132,7 @@ if($message->content === '-=spam'){
                 $promptWithVectors = $this->addHistoryFromVectorQuery($resultArray, $promptWithPreloads) ?? "";
 
                 //If using GPT api and format
-                if($useGpt){
 
-                    $gptPrompt[] = [
-                        'role'=>'user',
-                        'content'=>$promptRemoveTag
-                    ];
-
-                    $gptPrompt[] = $this->addHistoryFromVectorQueryGPT($resultArray);
-
-                    $gptPrompt[] = [
-                        'role'=>'user',
-                        'content'=>$promptRemoveTag
-                    ];
-
-                    $gptPromptJson = [];
-
-                    foreach($gptPrompt as $gpt){
-                        $gptPromptJson[] = json_decode(json_encode($gpt));
-                    }
-                }
                 $userName= $message->author->displayname;
 
                 $promptWithPreloads .= "-----\n" . $promptWithVectors;
@@ -144,7 +142,6 @@ if($message->content === '-=spam'){
 
                 //get davinci response
 
-                if(!$useGpt){
                     $result = OpenAI::completions()->create(['model' => 'text-davinci-003',
                             'prompt' => $promptWithPreloads,
 //                        'top_p' => .25,
@@ -162,27 +159,6 @@ if($message->content === '-=spam'){
                     );
 
                     $responsePath = $result['choices'][0]['text'];
-                }else{
-                    //get gpt4 response
-                    $result = OpenAI::chat()->create(['model' => 'gpt-3.5-turbo',
-                            'messages' => $gptPromptJson,
-//                        'top_p' => .25,
-                            'temperature' => 0.5,
-                            'max_tokens' => 600,
-                            'stop' => [
-                                '-----',
-                            ],
-                            'frequency_penalty' => 1.2,
-                            'presence_penalty' => 1.2,
-//                        'best_of' => 3,
-                            'n' => 1,
-
-
-                        ]
-                    );
-                    $responsePath=$result->choices[0]->message->content;
-                }
-                Log::debug(json_encode($result));
 
                 //update person model
                 $person->update([
@@ -225,7 +201,7 @@ if($message->content === '-=spam'){
 
             } catch (\Exception $e) {
                 Log::debug($e->getMessage());
-                return $message->reply($e->getMessage() . " on line " . $e->getLine() . " in " . $e->getFile() . " you stupid dumb shit god damn motherfuckerrrrrrr haha <3 fuck you");
+                return $message->reply($e->getMessage() . " on line " . $e->getLine() . " in " . $e->getFile() . ". Guess you better get on that.");
                 //    return $message->reply('For some reason I cannot explain, I do not have an answer.');
             }
 
@@ -286,17 +262,14 @@ if($message->content === '-=spam'){
 
         try {
             if (!$data) {
-                return ['success' => false, 'message' => "FUCK YOU I WON'T DO WHAT YOU TELL ME"];
+                return ['success' => false, 'message' => "No data found. My bad."];
             }
-//            $pinecone = new PineconeCore();
-
             $jobData = UpsertToPineconeJob::dispatch($vector, $data['id'], $discordUserId, $anneEmbed);
 
 
 
             return [
                 'success' => true,
-//                'data' => $pinecone->upsert(vector: $vector, id: $data['id'], discordUserId: $discordUserId, anneEmbed: $anneEmbed)
                 'data' => $jobData,
             ];
 
@@ -314,15 +287,9 @@ if($message->content === '-=spam'){
      * @param $message
      * @return array
      */
-    protected function initQuery(Message $message, $useGpt=false): array
+    protected function initQuery(Message $message, Discord $discord): array | string
     {
-
-        $gptPrompt = [];
-
-        // if using ChatGPT3.5Turbo
-        if($useGpt){
-            $gptPrompt = $this->getGptPrompt($gptPrompt);
-        }
+        $brainWindowArray = [];
 
         $prompt = CommonKnowledge::selfAwareness() . "\n\n";
 
@@ -331,30 +298,87 @@ if($message->content === '-=spam'){
         $prompt .= CommonKnowledge::basicInstructions() . "\n\n";
 
         $personName = $message->author->username;
-        $personNameShown = $message->member->nick;
+        $attribs = $message->getRawAttributes();
+        $globalName = $attribs['author']->global_name ?? null;
         $personId = $message->author->id;
 
 
-        $lastMessage = null;
+
+        if(data_get($message->author, 'nick', null)){
+            $personNameShown = $message->author->nick;
+        }elseif($globalName){
+            $personNameShown = $globalName;
+        }else{
+            $personNameShown = $personName;
+        }
+//        Log::debug(json_encode($attribs, 128));
+
+        $brainWindowArray = [
+            'username'=>$personName,
+            'global_name'=>$globalName ?? 'n/a',
+            'person_id'=>$personId,
+            'nick'=>$message->author->nick ?? 'n/a',
+            'person_name_shown'=>$personNameShown,
+            ];
+
+
+try{
+        $anneModel = Anne::all()->first();
+        $anneModel->last_user = $personName;
+        $anneModel->last_message = $message->content;
+        $anneModel->save();
+}catch(\Exception $e){
+    Log::debug($e->getMessage() . ' on line ' . $e->getLine());
+}
+
+   $lastMessage = null;
 
         // get the person object from db
-        $person = Person::firstOrCreate(['name' => $personName, 'id' => $personId]);
+
+        //this should fix the username change bug
+        $person = Person::updateOrCreate(
+            ['id' => $personId],
+            ['name' => $personName]
+        );
+
+        $person = Person::find($personId);
+
+//if($message->author->id == getenv('OWNER_ID')){
+//    $message->channel->sendMessage("PersonNameShown: $personNameShown, PersonId: $personId, person->name: $person->name");
+//
+////    $fuckinshit = json_encode($message->guild,128);
+////    $fuckinshit = json_encode($message->channel->guild->members,128);
+//    $fuckinshit = json_encode($message->getRawAttributes(),128);
+//    for($i = 0; $i < strlen($fuckinshit); $i=$i+1990){
+//        $message->channel->sendMessage("```json\n" . substr($fuckinshit,$i,1985) . "\n```");
+//    }
+//
+//}
+
+        try {
+            if ($personNameShown !== $person->name) {
+
+                $person->nameMapping($personNameShown, $personId, $personName);
+            }
+        }catch(\Exception $e){
+            Log::debug($e->getMessage() . ' on line ' . $e->getLine());
+        }
+
+        $userAliasList = $person->getNameList();
+
+        $brainWindowArray['aliasList'] = json_encode($userAliasList) ?? [];
 
         // is it their first message? if not, let's add their stuff to the prompt
+       $historyArray = [];
         if ($person->message_count > 0) {
 
 
-            $prompt = messageHistoryHandler::addMostRecentMessage($prompt, $person, $personNameShown);
-
-            if($useGpt){
-                $gptHistory = messageHistoryHandler::addMostRecentMessageGPT($person, $personNameShown);
-                foreach($gptHistory as $history){
-                    $gptPrompt[] = $history;
-                }
-            }
+            $historyArray = messageHistoryHandler::addMostRecentMessage($prompt, $person, $personNameShown, $message, $userAliasList);
         }
 
-        return array($prompt, $person, $gptPrompt);
+        $brainWindowArray = array_merge($brainWindowArray, $historyArray['brain']);
+
+        return array($historyArray['prompt'], $person, $brainWindowArray);
     }
 
     /**
@@ -445,16 +469,23 @@ if($message->content === '-=spam'){
                     $isAnne = true;
                     //get message id
                     $id = substr($result->id, 5);
-
+try{
                     $userMessage = new Messages;
                     if ($id) {
                         $priorMessageData = $userMessage->find('id');
                         if ($priorMessageData) {
                             $priorMessageData = $priorMessageData->toArray();
+                            $priorMessageOutput = trim($priorMessageData['message']) ?? 'Could not load prior user message from anne message.';
+                            $priorMessageUser = Person::find(trim($priorMessageData['user_id']))->name ?? null;
+                        }else{
+                            $priorMessageData = [];
+                            $priorMessageUser = '';
+                            $priorMessageOutput = '';
                         }
                     }
-                    $priorMessageOutput = trim($priorMessageData['message']) ?? 'Could not load prior user message from anne message.';
-                    $priorMessageUser = Person::find(trim($priorMessageData['user_id']))->name ?? null;
+}catch(\Exception $e){
+    Log::debug($e->getMessage() . ' on line ' . $e->getLine());
+}
                     //grab anne message model, query it for that message id, pull result
                     $anneMessageModel = new AnneMessages;
                     $messageData = $anneMessageModel->where('input_id', $id)->first() ?? null;
@@ -605,11 +636,11 @@ if($message->content === '-=spam'){
     private function summarizeVectorResult(string $vectorPrompt)
     {
 
-        $summaryPrompt = "You are a chat summary AI. Your current task is to summarize your chat history. You will be given a list of messages with timestamps.
-        You are to output a summary of the messages, in a way that is optimized as a prompt to give to a GPT-3 chatbot.\n\n
+        $summaryPrompt = "You are a summarization AI. Your current task is to summarize chat history. You will be given a list of messages with timestamps.
+        You are to output a summary of the messages, in a way that is optimized as a prompt to give to a text-davinci-003 LLM. Carefully read all of the input before summarizing.\n\n
 
             If a message starts with 'You: ' then the bot said it. Anything else, that's the user who said it.\n\n".
-            "If the message refers to 'anne', that means its referring to the GPT-3 chatbot you are summarizing for.\n\n"
+            "If the message refers to 'anne', that means its referring to the text-davinci-003 LLM you are summarizing for.\n\n"
             . "-----\n\n"
             ."Input:\n\n"
             ."[2023-03-01 12:29:48] ambi: What do you think of cheese?\n\n
@@ -640,31 +671,18 @@ if($message->content === '-=spam'){
 
     }
 
-    /**
-     * @param array $gptPrompt
-     * @return array
-     */
-    protected function getGptPrompt(array $gptPrompt): array
+    private function buildBrainWindowEmbed(mixed $brainArray, $discord)
     {
-        $gptPrompt[] = ['role' => 'system',
-            'content' => 'Your name is Anne. You are a member of a discord community, and you are speaking with other members of the community.\n
-            Interact with the users, answer their questions, and use the provided information to help define who you are and provided past messages to help you
-            recall past conversations you have had.'];
-
-        $gptPrompt[] = [
-            'role' => 'user',
-            'content' => CommonKnowledge::selfAwareness(),
-        ];
-
-        $gptPrompt[] = [
-            'role' => 'system',
-            'content' => CommonKnowledge::temporalAwareness(),
-        ];
-
-        $gptPrompt[] = [
-            'role' => 'user',
-            'content' => CommonKnowledge::basicInstructions(),
-        ];
-        return $gptPrompt;
+        $embed = new Embed($discord);
+        $embed->setTitle(("Anne's Brain"));
+        $embed->setDescription("We're going to fucking get this figured out dammit");
+        foreach($brainArray as $name=>$field) {
+            $embed->addFieldValues(
+                    $name,$field,false
+                );
+        }
+        return $embed;
     }
+
+
 }

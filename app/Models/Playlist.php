@@ -24,6 +24,8 @@ class Playlist extends Model
         'api_data',
         'artist',
         'user_id',
+        'thumbnail',
+        'whole_embed',
     ];
 
     private function getListForDate($date=null, $discord){
@@ -36,62 +38,127 @@ class Playlist extends Model
         return $this->getListForDate($date, $discord);
     }
 
-    public function buildEmbed($embedOutput, $discord){
+    //Builds a single song embed for output
+    public function buildEmbed($embedOutput, $discord, $item, $i, $personName, $url){
         try {
+
+            $color = $this->getTrackColor($item['source']) ?? null;
+
+            $timeString = Carbon::parse($item['timestamp'])->settings([
+                'toStringFormat' => 'g:i:s a',
+            ]);
             $embed = new Embed($discord);
-            $embed->fields = $embedOutput;
-            $embed->description = "Playlist for: " . Carbon::today()->toDateString();
-            $embed->title = "Playlist";
-            $embed->color = 0x00FF00;
-            $embed->footer = ['text' => 'Playlist for: ' . Carbon::today()->toDateString()];
+            $embed->setTitle(("$i. " . $item['artist'] . " - " . $item['name']));
+            $embed->setDescription('' . $personName . ' @ '. $timeString . ' -=- ' . 'on ' . $item['source']  . " -=- ". $item['duration']);
+            $embed->setURL($url ?? null);
+//            $embed->setAuthor("$i. $personName @ $timeString" ?? "");
+            $embed->setColor($color);
+            $embed->setThumbnail($item['thumbnail']);
+//            $embed->setFooter('by ' . $personName . ' @ '. $timeString);
+
             return $embed;
+
         }catch(\Exception $e){
             Log::debug($e->getMessage());
             return $e->getMessage() . ' L' . $e->getLine();
         }
     }
 
+    public function getSource($url, $id)
+    {
+        if (stripos($url, 'youtube') || stripos($url, 'youtu.be')) {
+            $track = Playlist::find($id);
+            $track->source = 'Youtube';
+            $track->save();
+            return 'Youtube';
+        } elseif (stripos($url, 'spotify')) {
+            $track = Playlist::find($id);
+            $track->source = 'Spotify';
+            $track->save();
+            return 'Spotify';
+        }
+        return null;
+    }
+
+
+    //this function processes the playlist data from the db into embeds to output to discord
     private function outputPlaylist($listData, $discord){
 
       try {
           $output = [];
-          foreach ($listData as $item) {
-              Log::debug(json_encode($item));
+          //$listData is the raw playlist data, gathering it into a more usable format
+          foreach ($listData as $track) {
               $output[] = [
-                  'user_id' => $item['user_id'] ?? null,
-                  'url' => $item['url'] ?? 'Bad URL data',
-                  'name' => $item['title'] ?? 'Unknown',
-                  'artist' => $item['artist'] ?? 'Unknown',
-                  'timestamp' => Carbon::parse($item['created_at'])->toDateTimeString() ?? 'Unknown',
+                  'user_id' => $track['user_id'] ?? null,
+                  'url' => $track['url'] ?? 'Bad URL data',
+                  'name' => $track['title'] ?? 'Unknown',
+                  'artist' => $track['artist'] ?? 'Unknown',
+                  'timestamp' => Carbon::parse($track['created_at'])->toDateTimeString() ?? 'Unknown',
+                  'thumbnail' => $track['thumbnail'] ?? null,
+                  'duration'    => str_replace(['PT','S','M'],['','',':'], $track['duration']) ?? '-:--',
+                  'source' => $track['source'] ?? $this->getSource($track['url'], $track['id']),
               ];
-
           }
-          $outputStr = "```"
-          . "\nPlaylist for: " . Carbon::today()->toDateString() . "\n-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n";
+
+          //counter for numbered list
           $i = 0;
-          foreach ($output as $item) {
-              $personName = 'Unknown';
-              if ($item['user_id']) {
-                  $personName = Person::where('id', $item['user_id'])->first();
-                  $personName = data_get($personName, 'name', 'Unknown');
-              }
-              $embedOutput[] = json_decode(json_encode([
-                  'name' => $personName,
-                  'value' => $item['url'],
-              ]));
 
-              Log::debug(json_encode($embedOutput));
+                    $embedArray = [
+                        'embeds'=>[],
+                    ];
 
-//              $outputStr .= ($i+1) . ". " . $personName . " - " . $item['timestamp'] . "\n";
-//              $outputStr .= $item['name'] . " by " . $item['artist'] . " - " . $item['url'] . "\n";
-          $i++;
-          }
-//            $outputStr .= "\n" . "```";
+                count($output) > 0 ? $embedArray['hasItems'] = true : $embedArray['hasItems'] = false;
+
+                    //loop through the playlist data
+
+                foreach ($output as $item) {
+                    $i++;
+
+                    //prepare one row of data for embed builder
+                    $personName = 'Unknown';
+                    if ($item['user_id']) {
+                        $personName = Person::where('id', $item['user_id'])->first();
+                        $personName = data_get($personName, 'name', 'Unknown');
+                    }
+
+
+                    $embedOutput = [
+                        json_decode(json_encode(
+                            [
+                                'name' => $item['artist'] . " - " . $item['name'],
+                                'value' => $item['url'],
+                            ]
+                        ))];
+
+                    $footer = [
+                        'text' => 'Posted by ' . $personName . ' on ' . Carbon::parse($item['timestamp'])->toDateString()
+                    ];
+                    //send this row to the embed builder, push to output array
+                    $embedArray['embeds'][] = $this->buildEmbed($embedOutput, $discord, $item, $i, $personName, $item['url']);
+
+
+
+
+            }
       }catch(\Exception $e){
             Log::debug($e->getMessage());
-            $outputStr = "Yeah if you had like a good programmer working on this it would work, but..." . $e->getMessage();
+            $outputStr = "Uh yeah so it didn't work..." . $e->getMessage();
       }
-        return $this->buildEmbed($embedOutput, $discord);
+        return $embedArray;
+    }
+
+    private function getTrackColor($source)
+    {
+        switch($source){
+            case 'Youtube':
+                return '0xff0000';
+            case 'Spotify':
+                return '0x1DB954';
+            case 'Soundcloud':
+                return '0xFF5500';
+            default:
+                return '0x0B5394';
+        }
     }
 
 }

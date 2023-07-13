@@ -37,7 +37,8 @@ class bot_main
 
         // start discord bot loop
         $discord = new Discord(['token' => $token,
-            'intents' => Intents::getDefaultIntents() | Intents::MESSAGE_CONTENT]);
+            'intents' => Intents::getAllIntents()]);
+
 
         $discord->on('ready', function (Discord $discord) use ($commandTag, $selfInfo, $ownerId, $lastMessage) {
 
@@ -75,7 +76,7 @@ class bot_main
 
                         ) {
                             $anne = new OpenAICore();
-                            $anne->query($message, $discord, $mention, null,null,$lastMessage);
+                            $anne->query($message, $discord, $mention, null,$lastMessage,$discord);
 
                         }
                     $lastMessage = $message;
@@ -110,8 +111,9 @@ class bot_main
                             }
                         }
                     } catch (\Exception $e) {
-                        Log::debug($e->getMessage());
-                        return $message->reply('Stoppit.');
+                        Log::debug($e->getMessage().' on line '. $e->getLine() . ' in ' . $e->getFile());
+                        return $message->reply("Stoppit.");
+//                        return $message->reply("Stoppit. I'll just tell you what's wrong:\n" . $e->getMessage().' on line '. $e->getLine() . ' in ' . $e->getFile());
                     }
                 }
             });

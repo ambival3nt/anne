@@ -5,9 +5,14 @@ namespace App\Core\commands;
 
 use App\Core\Features\Lichess;
 use App\Core\OpenAI\Prompts\analyzeUserInput;
+use App\Core\Spotify\GetAPIToken;
+use App\Core\Spotify\QueryAPI;
+use App\Core\YouTube\VideoQuery;
 use App\Models\Anne;
 use App\Models\Playlist;
+use App\Services\ButtonService;
 use Carbon\Carbon;
+use Discord\Builders\MessageBuilder;
 use Illuminate\Support\Facades\Log;
 use phpw2v\Word2Vec;
 
@@ -27,6 +32,9 @@ class HandleCommandProcess
             'spam',
             'command',
             'playlist',
+            'fart',
+            'test',
+            'think',
         ];
 
         return in_array($command, $commandList, true);
@@ -132,10 +140,18 @@ class HandleCommandProcess
 
             //test command for playlist functionality
             case 'playlist':
-                $playlist = new Playlist;
-                return $message->channel->sendEmbed(
-             $playlist->getListForToday($discord));
+                return self::createPlaylistMessage($discord, $message, 1);
+
                 break;
+//                return $message->channel->sendMessage("That's all the music posted today.");
+
+
+            case 'fart':
+
+                return $message->channel->sendMessage(ButtonService::testButton($discord));
+
+
+
 
             default:
                 return $message->reply("Uh... sure.");
@@ -156,6 +172,63 @@ class HandleCommandProcess
         $command = new analyzeUserInput();
         $commandList = $command->actions($commandBody, $message->author->username);
         return $message->reply($commandList);
+    }
+
+    /**
+     * @param $discord
+     * @param $message
+     * @return mixed
+     */
+    public static function createPlaylistMessage($discord, $message, $currentPage=1): mixed
+    {
+        $playlist = new Playlist;
+        $retrievedList = $playlist->getListForToday($discord);
+        $playlistPageArray = [];
+
+        //get total, then get number of pages
+        $totalItems = count($retrievedList['embeds']);
+        $totalPages = ceil($totalItems / 5);
+
+        //if there wasn't a playlist...
+        if (!$retrievedList['hasItems']) {
+            return $message->channel->sendMessage("No items in playlist for today. How boring.");
+        } else {
+
+            //create array of pages (one page is one message) of 5 embeds max each
+            $playlistMessage = new MessageBuilder();
+
+            $page = 1;
+            $i=1;
+
+            //this loops the full list of returned songs and puts them in an array in groups of 5, index is page number
+            foreach($retrievedList['embeds'] as $embed) {
+
+                $playlistMessage->addEmbed($embed);
+
+                if ($i % 5 === 0 && $i !== 0) {
+                    $playlistPageArray[$page] = $playlistMessage;
+                    $playlistMessage = new MessageBuilder();
+                    $page++;
+                }
+                $i++;
+            }
+            //this guy handles the last page, which may not be a full page
+            $playlistPageArray[$page] = $playlistMessage;
+        }
+
+        //if there is no array built, assume it is one small page
+        if (!$playlistPageArray) {
+            $playlistPageArray[$currentPage] = $playlistMessage;
+        }
+
+
+        //this is a function that is going to run every time a button inside this function is clicked. do not panic
+        $messageWithPaginator = ButtonService::buildPaginator($totalPages, $currentPage, $discord, $playlistPageArray);
+
+        //output
+        $message->channel->sendMessage("Playlist for: " . Carbon::today()->toFormattedDayDateString());
+        return $message->channel->sendMessage($messageWithPaginator);
+
     }
 
 }
