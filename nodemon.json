@@ -1,0 +1,16 @@
+{
+    "verbose": true,
+    "legacyWatch": true,
+    "ignore": [
+        ".git",
+        ".idea",
+        "node_modules",
+        "vendor",
+        "storage/logs"
+    ],
+    "execMap": {
+        "php": "php"
+    },
+    "restartable": "r",
+    "ext": "php"
+}

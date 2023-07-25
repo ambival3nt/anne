@@ -16,6 +16,7 @@
         "vite": "^3.0.0"
     },
     "dependencies": {
-        "chromadb": "^1.4.1"
+        "chromadb": "^1.4.1",
+        "nodemon": "^2.0.22"
     }
 }

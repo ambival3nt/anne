@@ -39,6 +39,10 @@ class Playlist
                     self::parseYoutubeData($message, $url);
                 }
 
+                if(stripos($url, 'soundcloud')){
+                    self::parseSoundcloudData($message, $url);
+                }
+
                 return true;
 
 
@@ -90,7 +94,7 @@ class Playlist
 
       $youtube = new VideoQuery();
 if(str_contains($url, 'youtube.com')) {
-    $songId = substr($url, strrpos($url, '/watch?v=') + 9);
+    $songId = substr($url, strrpos($url, '/watch?v=') + 9, 11);
 }elseif(str_contains($url, 'youtu.be')) {
     $songId = substr($url, strrpos($url, '/') + 1);
 }
@@ -110,6 +114,38 @@ if(str_contains($url, 'youtube.com')) {
         $playlist->source = 'Youtube';
         $playlist->save();
         return $playlist;
+    }
+
+    private static function parseSoundcloudData(Message $message, string $url)
+    {
+
+        $embed = json_decode(json_encode($message->embeds))[0];
+
+//        $embed = data_get($message->embeds, '*', null)[0] ?? null;
+//        if(!$embed){
+//            $embed = data_get($message->embeds, '0', null) ?? null;
+//        }
+
+        $soundcloudData = [
+            'title'=>data_get($embed, 'title', 'Unknown'),
+            'artist'=>data_get($embed, 'author.name', 'Unknown'),
+            'thumbnail'=>data_get($embed, 'thumbnail.url', null),
+        ];
+
+        $playlist = new \App\Models\Playlist();
+        $playlist->url = $url;
+        $playlist->user_id = $message->author->id;
+        $playlist->type = $soundcloudData['type'] ?? null;
+        $playlist->title = $soundcloudData['title'] ?? 'Unknown';
+        $playlist->artist = $soundcloudData['artist'] ?? 'Unknown';
+        $playlist->duration = '-:--';
+        $playlist->thumbnail = $soundcloudData['thumbnail'] ?? null;
+        $playlist->source = 'Soundcloud';
+        $playlist->save();
+
+
+        return $playlist;
+
     }
 
 
