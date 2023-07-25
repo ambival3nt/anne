@@ -24,35 +24,38 @@ class Person extends Model
 
     public function nameMapping($currentAlias, $personId=null, $personName=null){
 
-        Log::debug('Current Alias: ' . $currentAlias . ' Person ID: ' . $personId . ' Person Name: ' . $personName);
+      try {
+          Log::debug('Current Alias: ' . $currentAlias . ' Person ID: ' . $personId . ' Person Name: ' . $personName);
 
-        if($currentAlias===''){
-            return false;
-        }
+          if ($currentAlias === '') {
+              return false;
+          }
 
-        $this->recent_alias = $currentAlias;
-        $this->save();
+          $this->recent_alias = $currentAlias;
+          $this->save();
 
 
-        if(!$personId || !$personName){
-           try {
-               $mapping = PeopleNameMapping::firstOrCreate([
-                   'person_id' => $this->id,
-                   'username' => $this->name,
-                   'alias' => $currentAlias,
-               ]);
-           }catch(\Exception $e){
-               Log::debug($e->getMessage());
-               return $e->getMessage() . ' L' . $e->getLine();
-           }
-        }
-        else{
-            $mapping = PeopleNameMapping::firstOrCreate([
-                'person_id' => $personId,
-                'username' => $personName,
-                'alias' => $currentAlias,
-            ]);
-        }
+          if (!$personId || !$personName) {
+              try {
+                  $mapping = PeopleNameMapping::firstOrCreate([
+                      'person_id' => $this->id,
+                      'username' => $this->name,
+                      'alias' => $currentAlias,
+                  ]);
+              } catch (\Exception $e) {
+                  Log::debug($e->getMessage());
+                  return $e->getMessage() . ' L' . $e->getLine();
+              }
+          } else {
+              $mapping = PeopleNameMapping::firstOrCreate([
+                  'person_id' => $personId,
+                  'username' => $personName,
+                  'alias' => $currentAlias,
+              ]);
+          }
+      }catch(\Exception $e){
+          Log::debug($e->getMessage());
+      }
         return $mapping;
     }
 

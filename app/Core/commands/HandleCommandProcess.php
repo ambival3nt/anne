@@ -4,9 +4,11 @@ namespace App\Core\commands;
 
 
 use App\Core\Features\Lichess;
+use App\Core\OpenAI\OpenAICore;
 use App\Core\OpenAI\Prompts\analyzeUserInput;
 use App\Core\Spotify\GetAPIToken;
 use App\Core\Spotify\QueryAPI;
+use App\Core\VectorDB\VectorQueryReturn;
 use App\Core\YouTube\VideoQuery;
 use App\Models\Anne;
 use App\Models\Playlist;
@@ -56,6 +58,35 @@ class HandleCommandProcess
 
 
         switch ($command) {
+
+
+            case 'test':
+                $vectorReturn = new VectorQueryReturn(new OpenAICore());
+                return $vectorReturn->vectorQueryReturnTest($message);
+
+
+        // Emotional analysis test route
+            case 'think':
+                try {
+                    $m = substr($message->content, 7);
+
+                    //Analyze the user's message for abstracts
+                    return $message->reply((new analyzeUserInput())->basic($m, $message->author->displayname));
+
+                } catch (\Exception $e) {
+                    return $message->reply('NOP sorry, something went wrong: ' . $e->getMessage());
+                }
+
+//Dumps the whole message json
+            case 'spam':
+
+                $encodedArray = str_split(json_encode($message, 128), 2000);
+
+                foreach ($encodedArray as $item) {
+                    $message->reply($item);
+                }
+                return $message->reply("Spamming complete.");
+
 
             //ping command
             case 'ping':

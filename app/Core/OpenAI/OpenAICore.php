@@ -7,6 +7,7 @@ use App\Core\Memory\messageHistoryHandler;
 use App\Core\OpenAI\Prompts\analyzeUserInput;
 use App\Core\OpenAI\Prompts\ZiggyBasilisk;
 use App\Core\VectorDB\PineconeCore;
+use App\Core\VectorDB\VectorQueryReturn;
 use App\Jobs\UpsertToPineconeJob;
 use App\Models\Anne;
 use App\Models\AnneMessages;
@@ -30,86 +31,37 @@ class OpenAICore
 {
     //This is the main query function for the bot, if it's going to be using OpenAI's API
     private analyzeUserInput $analyzeUserInputFormatted;
+    private VectorQueryReturn $vectorQueryReturn;
 
     public function __construct()
     {
         $this->analyzeUserInputFormatted = new analyzeUserInput();
+        $this->vectorQueryReturn = new VectorQueryReturn($this);
     }
 
     public function query($message, $discord, $mention = null, $reply=null, $lastMessage)
     {
 
-
-
-
         $promptRemoveTag = null;
 
-
-if($message->content === '-=spam'){
-
-    $encodedArray = str_split(json_encode($message, 128), 2000);
-
-   foreach($encodedArray as $item){
-       $message->reply($item);
-   }
-
-}
-//Test route for anne's brain///////////////////////////
-        elseif (str_starts_with($message->content, "-=think") && !$message->author->bot) {
-            try {
-                $m = substr($message->content, 7);
-
-                //Analyze the user's message for abstracts
-                return $message->reply($this->analyzeUserInput($m, $message->author->displayname));
-
-            } catch (\Exception $e) {
-                return $message->reply('NOP sorry, something went wrong: ' . $e->getMessage());
-            }
-        }
-//////////////////////////////////////////////////////////
-
-
-
-// Vector scoring chart output/////////////////////////////////
-        elseif (str_starts_with($message->content, "-=test")
-            && !$message->author->bot
-        ) {
-
-            return $this->vectorQueryReturnTest($message);
-
-
-
-            ///////////////////////////////////////////////////////
-
-
-
-
-            //is someone mentionining anne? (evidently this covers replies too)
-        } elseif ($mention) {
+        // Triggers for anne to respond
+        if ($mention) {
             $promptRemoveTag = str_replace('@' . $mention->id, 'anne', $message->content);
             //init query
             list(
                 $prompt,
                 $person,
-                $brainArray,
+
                 ) = $this->initQuery($message, $discord);
 
-            //standard query
+
         } elseif (str_starts_with(strtolower($message->content), "anne,") && !$message->author->bot) {
             //init query
             list(
                 $prompt,
                 $person,
-                $brainArray,
+
                 ) = $this->initQuery($message, $discord);
-
-            $brainEmbed = $this->buildBrainWindowEmbed($brainArray, $discord);
-
-
-            $brainBuilder = new MessageBuilder();
-            $brainBuilder->addEmbed($brainEmbed);
-//            $message->channel->createThread($brainBuilder, $message->author->username . ' ' . $message->author->discriminator . ' ' . Carbon::now()->toDateTimeString());
-//            $message->channel->sendMessage($brainBuilder);
 
 
             //chop tag off string
@@ -129,7 +81,7 @@ if($message->content === '-=spam'){
                 $resultArray = $vectorQueryResult->query($userEmbed);
 
                 //parse vectors into prompt
-                $promptWithVectors = $this->addHistoryFromVectorQuery($resultArray, $promptWithPreloads) ?? "";
+                $promptWithVectors = $this->addHistoryFromVectorQuery($resultArray, $promptWithPreloads, $message) ?? "";
 
                 //If using GPT api and format
 
@@ -181,7 +133,7 @@ if($message->content === '-=spam'){
                 ]);
 
                 //Get cosine similarity locally (for testing, maybe permanent)
-                $cosineSimilarity = Distance::cosineSimilarity($userEmbed, $anneEmbed);
+//                $cosineSimilarity = Distance::cosineSimilarity($userEmbed, $anneEmbed);
 
                 //send embeds to vector db
                 $this->sendToPineconeAPI($userEmbed, ['id' => (string)$messageModel->id], (string)$person->id, $anneEmbed);
@@ -207,7 +159,7 @@ if($message->content === '-=spam'){
 
             //todo: if this debug shit all works move it to its own class to be invoked anywhere we need it
             if(Anne::all()->first()->debug){
-                $responsePath .= "\nCosine Similarity: " . $cosineSimilarity;
+//                $responsePath .= "\nCosine Similarity: " . $cosineSimilarity;
             }
 
             return $message->reply($responsePath);
@@ -221,10 +173,10 @@ if($message->content === '-=spam'){
 
 
            $image = file_get_contents($result['data'][0]['url']);
-           Log::debug(json_encode($image));
+
            $filename = 'discordUpload' . Carbon::now()->toDateTimeString().'.png';
            $put = file_put_contents($filename, $image);
-           Log::debug(json_encode($put));
+
            $builder = MessageBuilder::new();
 
             $builder->addFile($filename);
@@ -301,31 +253,32 @@ if($message->content === '-=spam'){
         $attribs = $message->getRawAttributes();
         $globalName = $attribs['author']->global_name ?? null;
         $personId = $message->author->id;
+//        $personId = 402474631992180738;
 
 
 
-        if(data_get($message->author, 'nick', null)){
-            $personNameShown = $message->author->nick;
+        if(data_get($message->member, 'nick', null)){
+            $personNameShown = $message->member->nick;
         }elseif($globalName){
             $personNameShown = $globalName;
         }else{
             $personNameShown = $personName;
         }
-//        Log::debug(json_encode($attribs, 128));
+        $personNameShown = mb_convert_encoding($personNameShown, 'UTF-8', 'UTF-8');
 
-        $brainWindowArray = [
-            'username'=>$personName,
-            'global_name'=>$globalName ?? 'n/a',
-            'person_id'=>$personId,
-            'nick'=>$message->author->nick ?? 'n/a',
-            'person_name_shown'=>$personNameShown,
-            ];
+//        $brainWindowArray = [
+//            'username'=>$personName,
+//            'global_name'=>$globalName ?? 'n/a',
+//            'person_id'=>$personId,
+//            'nick'=>$message->member->nick ?? 'n/a',
+//            'person_name_shown'=>$personNameShown,
+//            ];
 
 
 try{
         $anneModel = Anne::all()->first();
         $anneModel->last_user = $personName;
-        $anneModel->last_message = $message->content;
+        $anneModel->last_message = $message->content ?? '';
         $anneModel->save();
 }catch(\Exception $e){
     Log::debug($e->getMessage() . ' on line ' . $e->getLine());
@@ -343,18 +296,6 @@ try{
 
         $person = Person::find($personId);
 
-//if($message->author->id == getenv('OWNER_ID')){
-//    $message->channel->sendMessage("PersonNameShown: $personNameShown, PersonId: $personId, person->name: $person->name");
-//
-////    $fuckinshit = json_encode($message->guild,128);
-////    $fuckinshit = json_encode($message->channel->guild->members,128);
-//    $fuckinshit = json_encode($message->getRawAttributes(),128);
-//    for($i = 0; $i < strlen($fuckinshit); $i=$i+1990){
-//        $message->channel->sendMessage("```json\n" . substr($fuckinshit,$i,1985) . "\n```");
-//    }
-//
-//}
-
         try {
             if ($personNameShown !== $person->name) {
 
@@ -366,7 +307,11 @@ try{
 
         $userAliasList = $person->getNameList();
 
-        $brainWindowArray['aliasList'] = json_encode($userAliasList) ?? [];
+
+        $userAliasList = mb_convert_encoding($userAliasList, 'UTF-8', 'UTF-8');
+
+
+      // $brainWindowArray['aliasList'] = json_encode($userAliasList) ?? [];
 
         // is it their first message? if not, let's add their stuff to the prompt
        $historyArray = [];
@@ -376,9 +321,9 @@ try{
             $historyArray = messageHistoryHandler::addMostRecentMessage($prompt, $person, $personNameShown, $message, $userAliasList);
         }
 
-        $brainWindowArray = array_merge($brainWindowArray, $historyArray['brain']);
+     //   $brainWindowArray = array_merge($brainWindowArray, $historyArray['brain']);
 
-        return array($historyArray['prompt'], $person, $brainWindowArray);
+        return array($historyArray['prompt'], $person);
     }
 
     /**
@@ -388,74 +333,16 @@ try{
      */
     protected function vectorQueryReturnTest($message): mixed
     {
-        $promptRemoveTag = substr($message->content, 6);
-
-        //get vector for user's message
-        $userEmbed = $this->buildEmbedding($promptRemoveTag)->embeddings[0]->embedding;
-
-        // Query pinecone with the user embedding
-        $vectorQueryResult = new PineconeCore;
-        $vectorQueryResult = $vectorQueryResult->query($userEmbed);
-
-        //format the output
-        $mask = "|%5.5s | %10.10s | %10.10s | %-20.20s | %-55.55s |\n";
-        $anneOutput = "```\n
-        Input: $promptRemoveTag\n" . sprintf($mask, 'Id', 'Score', 'Date', 'User', 'Message');
-
-        foreach ($vectorQueryResult['matches'] as $result) {
-
-            //anne
-
-            //if its one of anne's message vectors...
-            if ($result->metadata->anne) {
-
-                //This is hella broken we gotta fix this shit sooner rather than later TODO: fuckin fix this sooner rather than later
-                $id = substr($result->id, 5);
-                $anneMessageModel = new AnneMessages;
-
-                //find it and grab the message, its doing it right now by cutting up the id string which is bad
-                $messageData = $anneMessageModel->where('input_id', $id)->first()->toArray() ?? [];
-
-                if (!$messageData) {
-                    Log::debug('Missing messageData on id: ' . $id);
-                    continue;
-                }
-
-                $messageOutput = trim($messageData['message']) ?? 'Could not load message.';
-                $user = "anne.hedonia";
-                $id = "anne-" . $messageData['id'];
-
-                //if its a user's message vector...
-            } else {
-                $id = $result->id;
-                $messageModel = new Messages;
-                $messageData = $messageModel->where('id', $id)->first()->toArray();
-                if (!$messageData) {
-                    Log::debug('Missing messageData on id: ' . $id);
-                    continue;
-                }
-                $messageOutput = $messageData['message'] ?? 'Could not load message.';
-                $people = new Person;
-                $user = $people->where('id', $messageData['user_id'])->first()->name ?? '??';
-
-            }
-
-            $score = $result->score;
-            $date = $result->metadata->dateTime;
-
-            $anneOutput = $anneOutput . sprintf($mask, $id, $score, $date, $user, $messageOutput);
-
-        }
-        $anneOutput = $anneOutput . "```";
-
-        return $message->reply($anneOutput);
+        return $this->vectorQueryReturn->vectorQueryReturnTest($message);
     }
 
-    private function addHistoryFromVectorQuery(array $resultArray, string $promptWithPreloads)
+    private function addHistoryFromVectorQuery(array $resultArray, string $promptWithPreloads, $message)
     {
 
          $vectorPrompt =   "";
-
+        $priorMessageData = [];
+        $priorMessageUser = '';
+        $priorMessageOutput = '';
         try {
 
             //only use vectors with score above the threshhold (hardcoded to .79 for now, this will eventually move to front end)
@@ -470,14 +357,15 @@ try{
                     //get message id
                     $id = substr($result->id, 5);
 try{
-                    $userMessage = new Messages;
+
                     if ($id) {
-                        $priorMessageData = $userMessage->find('id');
+                        $priorMessageData = Messages::find($id) ?? null;
                         if ($priorMessageData) {
-                            $priorMessageData = $priorMessageData->toArray();
+                            $priorMessageData = $priorMessageData->toArray() ?? [];
                             $priorMessageOutput = trim($priorMessageData['message']) ?? 'Could not load prior user message from anne message.';
-                            $priorMessageUser = Person::find(trim($priorMessageData['user_id']))->name ?? null;
+                            $priorMessageUser = Person::find(trim($priorMessageData['user_id']))->name ?? '';
                         }else{
+
                             $priorMessageData = [];
                             $priorMessageUser = '';
                             $priorMessageOutput = '';
@@ -502,32 +390,43 @@ try{
                     $user = "You";
 
                     //Output is like: [HH:MM:SS MM/DD/YY] Username: message, and for anne messages we include the message that it is a reply to
+
+                    if(data_get($priorMessageData,'created_at',false) !== false){
+                        $datestamp = Carbon::parse($priorMessageData['created_at'])->toDateTimeString();
+                    }else{
+                        $datestamp = "Date Unknown";
+                    }
+
                     $vectorPrompt .= "\n" .
-                        $date = '[' . Carbon::parse($priorMessageData['created_at'])->toDateTimeString() . '] ' .  $priorMessageUser . ": '" . $priorMessageOutput;
+                        $date = '['.$datestamp.'] ' .  $priorMessageUser . ": '" . $priorMessageOutput;
                     $vectorPrompt .= "\n" .
                         $date = '[' . $result->metadata->dateTime . '] ' .  $user . ": '" . $messageOutput;
 
                     //if its a user's message vector...
                 } else {
-                    $id = $result->id;
-                    $messageModel = new Messages;
-                    $messageData = $messageModel->with('anneReply')->where('id', $id)->first();
-                    if (!$messageData) {
-                        Log::debug('Missing messageData on id: ' . $id);
-                        continue;
+                    try {
+                        $id = $result->id;
+                        $messageModel = new Messages;
+                        $messageData = $messageModel->with('anneReply')->where('id', $id)->first();
+                        if (!$messageData) {
+                            Log::debug('Missing messageData on id: ' . $id);
+                            continue;
+                        }
+                        //same shit BUT we need to grab anne's response too, which I'm pretty sure I set up a relationship for
+                        $anneReplyMessage = $messageData->anneReply ?? null;
+
+                        $messageOutput = $messageData['message'] ?? 'Could not load message.';
+                        $people = new Person;
+                        $user = $people->where('id', $messageData['user_id'])->first()->name ?? '??';
+
+                        //same shit as anne's but the inverse, we include anne's message after the fact
+                        $vectorPrompt .= "\n" .
+                            $date = '[' . $result->metadata->dateTime . '] ' . $user . ": '" . $messageOutput;
+
+                    }catch(\Exception $e) {
+                        Log::debug($e->getMessage() . ' on ' . $e->getLine());
+                        $message->channel->sendMessage("I'm gonna be... BLUUUEUEUEUEUGUEGHGHGHHrrrhghgh\n" . json_encode($result, 128));
                     }
-                    //same shit BUT we need to grab anne's response too, which I'm pretty sure I set up a relationship for
-                    $anneReplyMessage = $messageData->anneReply ?? null;
-
-                    Log::debug(json_encode($anneReplyMessage, 128));
-
-                    $messageOutput = $messageData['message'] ?? 'Could not load message.';
-                    $people = new Person;
-                    $user = $people->where('id', $messageData['user_id'])->first()->name ?? '??';
-
-                    //same shit as anne's but the inverse, we include anne's message after the fact
-                    $vectorPrompt .= "\n" .
-                        $date = '[' . $result->metadata->dateTime . '] ' .  $user . ": '" . $messageOutput;
                     if($anneReplyMessage) {
                         $vectorPrompt .= "\n" .
                             $date = '[' . Carbon::parse(data_get($anneReplyMessage, 'created_at', null)->toDateTimeString()) . '] ' . 'You: ' . trim($anneReplyMessage->message);
