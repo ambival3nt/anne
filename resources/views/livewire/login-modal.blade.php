@@ -13,8 +13,7 @@
                 <div class="items-end p-4 text-center sm:items-center sm:p-0">
 
                     <div
-                        class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg"
-                        style="border-radius: 20px; border:1px">
+                        class="relative transform overflow-hidden rounded-lg bg-xanthous-lt text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
                         <form method="POST" action="{{ route('login') }}">
                             @csrf
 
@@ -47,7 +46,7 @@
                                            class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
                                            name="remember">
                                     <span
-                                        class="ml-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
+                                        class="ml-2 text-sm text-waterloo">{{ __('Remember me') }}</span>
                                 </label>
                             </div>
 
