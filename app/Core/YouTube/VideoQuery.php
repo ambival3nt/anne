@@ -34,6 +34,25 @@ class VideoQuery
         return $output;
     }
 
+    public function search(String $queryParam){
+        $res = Http::get('https://www.googleapis.com/youtube/v3/search',
+
+            [
+                'key' => getenv('YOUTUBE_API_KEY'),
+                'q' => $queryParam,
+                'part' => 'snippet',
+            ])->body();
+        $res = json_decode($res);
+
+        $url = "https://youtu.be/";
+        $url .= $res->items[0]->id->videoId;
+
+        return $url;
+
+//        return substr(json_encode($res->items[0]->id->videoId,128), 0, 1999);
+    }
+
+
 //    public function getData($videoId)
 //    {
 //        $client = new Google_Client();

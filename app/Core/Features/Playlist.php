@@ -29,17 +29,28 @@ class Playlist
             try {
 
                 //turns out you shouldn't try to take the output from a 3rd party to populate your 4th party output. Huh.
-                if (stripos($url, 'spotify')) {
+                if (stripos($url, 'spotify')
+                || stripos($url, 'open.spotify.com')
+                || stripos($url, 'spotify.app.goo.gl')
+                ){
                     $playlist = self::parseSpotifyData($message, $url);
                 }
 
 
                 //ok
-                if (stripos($url, 'youtube') || stripos($url, 'youtu.be')) {
+                if (stripos($url, 'youtube')
+                    || stripos($url, 'youtu.be')
+                    || stripos($url, 'youtube.app.goo.gl')) {
                     self::parseYoutubeData($message, $url);
                 }
 
-                if(stripos($url, 'soundcloud')){
+                if(stripos($url, 'soundcloud') || stripos($url, 'snd.sc')
+                    || stripos($url, 'on.soundcloud.com')
+                    || stripos($url, 'scdl')
+                    || stripos($url, 'soundcloud.app.goo.gl')
+                    || stripos($url, 'soundcloud.com')
+                    || stripos($url, 'soundcloud.app.link')) {
+                    Log::debug('soundcloud link detected');
                     self::parseSoundcloudData($message, $url);
                 }
 
@@ -116,21 +127,27 @@ if(str_contains($url, 'youtube.com')) {
         return $playlist;
     }
 
+    //this shit is ridiculous
     private static function parseSoundcloudData(Message $message, string $url)
     {
 
-        $embed = json_decode(json_encode($message->embeds))[0];
-
-//        $embed = data_get($message->embeds, '*', null)[0] ?? null;
-//        if(!$embed){
-//            $embed = data_get($message->embeds, '0', null) ?? null;
-//        }
+        sleep(2);
+        Log::debug(json_encode($message->embeds));
+        $embed = json_decode(json_encode($message->embeds))[0] ?? null;
+        if(!$embed) {
+        $embed = data_get($message->embeds, '*', null)[0] ?? null;
+        }
+        if(!$embed){
+            $embed = data_get($message->embeds, '0', null) ?? null;
+        }
 
         $soundcloudData = [
             'title'=>data_get($embed, 'title', 'Unknown'),
             'artist'=>data_get($embed, 'author.name', 'Unknown'),
             'thumbnail'=>data_get($embed, 'thumbnail.url', null),
         ];
+
+        Log::debug($soundcloudData);
 
         $playlist = new \App\Models\Playlist();
         $playlist->url = $url;

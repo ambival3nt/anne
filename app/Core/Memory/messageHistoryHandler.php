@@ -5,6 +5,7 @@ namespace App\Core\Memory;
 use App\Models\AnneMessages;
 use App\Models\Messages;
 use App\Models\Person;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class messageHistoryHandler
@@ -24,8 +25,6 @@ try {
 
     if ($lastMessage !== $person->last_message) {
         $prompt .= "          \nThe last message you received was: $actualLastMessage from $lastPerson->name\n.";
-
-
     }
     if ($message->author->id !== $person->id) {
         $prompt = $prompt . "\n\nThe person you're speaking to now is $personNameShown, please refer to them by that name.\n";
@@ -40,6 +39,26 @@ try {
     $prompt .= "The person you are speaking to has used the following names:\n
          $aliasListString\n
          , use that list of names to help you identify them.\n";
+
+    $messages = Messages::all()->take(-5);
+
+    $historyString = "\n\nThis is the current, most recent conversation history:\n\n";
+
+
+    foreach($messages as $userMessage){
+
+        $historyString .= "Timestamp: " . Carbon::parse($userMessage->created_at)->toDateTimeString() . "\n" .
+            $userMessage->user->name . ' said: ' . $userMessage->message . "\n";
+
+        $historyString .= $userMessage->anneReply ?
+            "You replied: " .  $userMessage->anneReply->message . "\n\n"
+            : "You did not reply.";
+
+        $historyString .= "\nFeel free to reference any of these messages to enrich your response, or address the other users in the list if its relevant.\n\n";
+
+        $prompt .= $historyString;
+
+};
 
 
 //        $mergeToWindow = [

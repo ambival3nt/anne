@@ -45,7 +45,9 @@ class bot_main
             $discord->on('message', function (Message $message, Discord $discord) use ($commandTag, $selfInfo, $ownerId, $lastMessage) {
 
                 //checks for music link for playlist feature (why did i do this)
-                $this->isMusicLink($message);
+               if(!$message->author->bot) {
+                   $this->isMusicLink($message);
+               }
 
                 $reply = null;
                 $mention = null;
@@ -136,6 +138,7 @@ class bot_main
                 || stripos($message->content, 'spotify.com') !== false
                 || stripos($message->content, 'open.spotify.com') !== false
             ) {
+                Log::debug('isMusicLink - ' . $message->content);
                 Playlist::grabMusicLinkUrl($message);
             }
         }
