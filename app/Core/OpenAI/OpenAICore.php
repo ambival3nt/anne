@@ -8,6 +8,7 @@ use App\Core\OpenAI\Prompts\analyzeUserInput;
 use App\Core\OpenAI\Prompts\ZiggyBasilisk;
 use App\Core\VectorDB\PineconeCore;
 use App\Core\VectorDB\VectorQueryReturn;
+use App\Enums\AnneActions;
 use App\Jobs\UpsertToPineconeJob;
 use App\Models\Anne;
 use App\Models\AnneMessages;
@@ -52,7 +53,7 @@ class OpenAICore
                 $prompt,
                 $person,
 
-                ) = $this->initQuery($message, $discord);
+                    ) = $this->initQuery($message, $discord);
 
 
         } elseif (str_starts_with(strtolower($message->content), "anne,") && !$message->author->bot) {
@@ -68,6 +69,9 @@ class OpenAICore
             $promptRemoveTag = substr($message->content, 5);
         }
         if ($promptRemoveTag) {
+
+        // AnneActions::checkForAction($promptRemoveTag, $message);
+
             try {
 
                 //get vector for user's message
@@ -84,6 +88,11 @@ class OpenAICore
                 $promptWithVectors = $this->addHistoryFromVectorQuery($resultArray, $promptWithPreloads, $message) ?? "";
 
                 //If using GPT api and format
+//                if(getenv('USE_GPT')){
+//                    $GPT = new GPTCore();
+//                    $result =  $GPT->init(discord: $discord, message: $message, person: $person, promptRemoveTag: $promptRemoveTag, userEmbed: $userEmbed);
+//                }
+
 
                 $userName= $message->author->displayname;
 
@@ -163,7 +172,7 @@ class OpenAICore
             }
 
             return $message->reply($responsePath);
-        }elseif (str_starts_with($message->content, "anne show me ") && !$message->author->bot) {
+        }elseif ((str_starts_with(strtolower($message->content), "anne show me ") ) && !$message->author->bot) {
 
             $result = OpenAI::images()->create([
                 'prompt' => substr($message->content, 12),
@@ -266,14 +275,6 @@ class OpenAICore
         }
         $personNameShown = mb_convert_encoding($personNameShown, 'UTF-8', 'UTF-8');
 
-//        $brainWindowArray = [
-//            'username'=>$personName,
-//            'global_name'=>$globalName ?? 'n/a',
-//            'person_id'=>$personId,
-//            'nick'=>$message->member->nick ?? 'n/a',
-//            'person_name_shown'=>$personNameShown,
-//            ];
-
 
 try{
         $anneModel = Anne::all()->first();
@@ -311,12 +312,10 @@ try{
         $userAliasList = mb_convert_encoding($userAliasList, 'UTF-8', 'UTF-8');
 
 
-      // $brainWindowArray['aliasList'] = json_encode($userAliasList) ?? [];
 
         // is it their first message? if not, let's add their stuff to the prompt
        $historyArray = [];
         if ($person->message_count > 0) {
-
 
             $historyArray = messageHistoryHandler::addMostRecentMessage($prompt, $person, $personNameShown, $message, $userAliasList);
         }
@@ -458,74 +457,6 @@ try{
     }
 
 
-    //This is for GPT, we tried this and it wasn't great but I'm leaving the methods just in case we wanna use em
-    private function addHistoryFromVectorQueryGPT(array $resultArray)
-    {
-        $output = [];
-        $output = ['role'=>'user', 'content'=>
-            "Here are some related messages from your memory.\n
-            If you think a message is not relevant to this conversation, you can ignore it",
-        ];
-
-        try {
-            foreach ($resultArray['matches'] as $result) {
-                if ($result->score < 0.79) {
-                    continue;
-                }
-
-                //if its an anne message vector
-                if (data_get($result, 'metadata.anne', false) !== false) {
-
-                    //this is such a bad way to get anne messages like cman
-                    $id = substr($result->id, 5);
-                    $anneMessageModel = new AnneMessages;
-
-                    $messageData = $anneMessageModel->where('input_id', $id)->first() ?? null;
-
-                    if($messageData) {
-                        $messageData = $messageData->toArray() ?? [];
-                    } else {
-                        Log::debug('Missing messageData on id: ' . $id);
-                        continue;
-                    }
-
-                    $messageOutput = trim($messageData['message']) ?? '';
-                    $output['content'] .= '\nYou said: ' . $messageOutput .
-                        "' at this date and time: " . $date = $result->metadata->dateTime . "\n";
-
-
-                    //user
-
-                } else {
-                    $id = $result->id;
-                    $messageModel = new Messages;
-                    $messageData = $messageModel->where('id', $id)->first()->toArray();
-                    if (!$messageData) {
-                        Log::debug('Missing messageData on id: ' . $id);
-                        continue;
-                    }
-                    $messageOutput = $messageData['message'] ?? 'Could not load message.';
-                    $people = new Person;
-                    $user = $people->where('id', $messageData['user_id'])->first()->name ?? '??';
-
-                }
-
-                $output['content'] .=
-                    "\n$user said: '" . $messageOutput .
-                    "' at this date and time: " . $date = $result->metadata->dateTime . "\n";
-            }
-            $output['content'] .= "Please, carefully consider if any of the messages are relevant before using them to create your response.\n\n";
-
-        } catch (\Exception $e) {
-            Log::debug($e->getMessage() . " on line " . $e->getLine() . " in " . $e->getFile());
-            Log::debug("Vector prompt preload error.");
-            return $e->getMessage();
-        }
-        return $output;
-    }
-
-
-
     protected function analyzeUserInput(string $input, string $user)
     {
         return (new analyzeUserInput())->basic($input, $user);
@@ -555,17 +486,41 @@ try{
             ."Input:\n\n" . $vectorPrompt . "\n\n ----- \n\n
             Summary: \n\n";
 
-        $result = OpenAI::completions()->create(['model' => 'text-davinci-003',
-                'prompt' => $summaryPrompt,
-                'max_tokens' => 600,
-                'stop' => [
-                    '-----',
-                ],
-                'n' => 1,
-            ]
+//        $result = OpenAI::completions()->create(['model' => 'text-davinci-003',
+//                'prompt' => $summaryPrompt,
+//                'max_tokens' => 600,
+//                'stop' => [
+//                    '-----',
+//                ],
+//                'n' => 1,
+//            ]
+//        );
+
+        $result = OpenAI::chat()->create([
+                'model' => 'gpt-3.5-turbo',
+
+                'messages' => [
+                    [
+                        "role" => "system",
+                        "content" => $summaryPrompt,
+                    ],
+                    ],
+                    'temperature' => .1,
+                    'max_tokens' => 600,
+                    'stop' => [
+                        '-----',
+                    ],
+                    'frequency_penalty' => 1.2,
+                    'presence_penalty' => 1.2,
+                    'n' => 1,
+                ]
+
         );
 
-    $return = $result['choices'][0]['text'];
+//    $return = $result['choices'][0]['text'];
+Log::debug($result['choices'][0]['message']['content']);
+        $return = $result['choices'][0]['message']['content'];
+
     return $return;
 
     }

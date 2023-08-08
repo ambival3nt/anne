@@ -11,10 +11,12 @@ class analyzeUserInput
     public function actions($input, $user){
         $prompt= "You are an AI that analyzes user input. You have a list of available commands at your disposal. \n
         Here are those commands, carefully familiarize yourself with them:\n
-        ". $this->modelCommands($input,$user) . "\n----\n
-        Your task is to return appropriate commands to handle the user's request. If none do, then return 'none'.\n
-        Multiple is fine. Carefully consider each command.\n
-        Put each selected command on its own line, properly formatted.\n
+        ". $this->modelCommands($input,$user) . "\n-----\n
+        Your task is to return an appropriate command to handle the user's request.\n
+        Most requests will likely not need any of these commands.\n
+        Give each command a confidence score between 1 and 10 on the likelihood it is required.\n
+        Return the command with the highest score, but only if the score is above 9.\n
+        If you are unsure, return nothing.\n
         Do not change the user's input.\n\n
         -----
         User: $input
@@ -23,22 +25,30 @@ class analyzeUserInput
         "
         ;
 
-        $result = OpenAI::completions()->create(['model' => 'text-davinci-002',
-                'prompt' => $prompt,
+        $result = OpenAI::chat()->create([
+                'model' => 'gpt-3.5-turbo',
+
+                'messages'=> [
+                    [
+                        "role"=>"system",
+                        "content"=>$prompt,
+                    ]
+                ],
+
+//                'prompt' => $prompt,
 //                        'top_p' => .25,
-                'temperature' => .25,
+                'temperature' => .1,
                 'max_tokens' => 600,
                 'stop' => [
                     '-----',
                 ],
                 'frequency_penalty' => 1.2,
                 'presence_penalty' => 1.2,
-                'best_of' => 2,
                 'n' => 1,
             ]
         );
         Log::debug(json_encode($result, 128));
-        return $result['choices'][0]['text'];
+        return $result['choices'][0]['message']['content'];
 
     }
 
@@ -106,46 +116,58 @@ public function modelCommands($input, $user){
 
         $prompt = "
             Command: -save\n
-            Example Case: User says 'Remember this code for me.'\n
-             Description: Saves user request to the database.\n
-             Usage: -save [data type] [data]\n
+
+            Description: Saves user request to the database, that the user specifically asks to save or to be remembered.\n
+            Example Case: User says 'Can you remember [user input] for me?'\n
+            Usage: -save [data type] [data]]\n
             Example Output: -save ".gettype($input)." $input\n
             -----
             Command: -get\n
-            Example Case: User says 'What was that code again?'\n
-            Description: Query user request from the database.\n
+
+            Description: Query user specifically requested memory from the database. Only select this if user asks you to remember something.\n
+            Example Case: User says 'What was that code that i told you to remember?'\n
             Usage: -get [data type] [data]\n
-            Example Output: -get ".gettype($input)." $input\n
+            Example Output: -get ".gettype($input)."\n
             -----
             Command: -websearch\n
-            Example Case: User says 'search for...'\n
+
             Description: Searches the internet for user query.\n
+            Example Case: User says 'Can you do a search for [search query]?'\n
             Usage: -websearch [input]\n
             Example Output: -websearch $input\n
             -----
             Command: -recall\n
-            Example Case: User says 'do you remember when...'\n
+
             Description: Recalls a specific previous message from a user.\n
+            Example Case: User says 'do you remember when [user references event]'\n
             Usage: -recall [user] [input]\n
             Example Output: -recall $user $input\n
             -----
             Command: -ban\n
-            Example Case: User says 'Ban @user for being a dick'\n
             Description: Bans a user from the server.\n
+            Example Case: User says 'Ban @user for being a dick'\n
             Usage: -ban [user]\n
-            Example Output: -ban $user\n
+            Example Output: -ban @user\n
             -----
             Command: -like\n
-            Example Case: User says something polite, kind, or positive.\n
-            Description: Like a message, increase user's reputation.\n
+
+            Description: Like a message, because the user said something polite, kind, or positive. Increase user's reputation.\n
+            Example Case: User says 'You did a great job on that, [another user]'.\n
             Usage: -like [user]\n
             Example Output: -like $user\n
             -----
             Command: -dislike\n
-            Example Case: User says something rude, mean, or aggressive.\n
-            Description: Dislike a message, decrease user's reputation.\n
+
+            Description: User says something rude, mean, or aggressive. Dislike a message, decrease user's reputation.\n
+            Example Case: User says: 'Wow, you look ugly in that picture, [another user].'\n
             Usage: -dislike [user]\n
             Example Output: -dislike $user\n
+            -----
+            Command: -yoot\n
+            Description: Get a youtube url for a user's query for a video, or user mentions youtube.\n
+            Example Case: User says: 'Can you find that video [user request] on youtube?.'\n
+            Usage: -yoot [subject of user request]\n
+            Example Output: -yoot [subject of user request]\n
             -----
             ";
 

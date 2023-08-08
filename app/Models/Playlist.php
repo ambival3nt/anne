@@ -8,6 +8,7 @@ use Discord\Parts\Embed\Embed;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Person;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Log;
 
 class Playlist extends Model
@@ -28,28 +29,66 @@ class Playlist extends Model
         'whole_embed',
     ];
 
+    public static function controller($discord, $message, mixed $arg)
+    {
+        switch($arg){
+            case 'top':
+                $playlist = new Playlist();
+                $count = $playlist->all()->groupBy('user_id');
+
+return '';
+        }
+
+
+    }
+
+
+    /**
+     * Get the playlist for specific date
+     * @param $date
+     * @param $discord
+     * @return array|array[]
+     */
     private function getListForDate($date=null, $discord){
         $listData = self::whereDate('created_at', $date)->get()->toArray();
         return $this->outputPlaylist($listData, $discord);
     }
 
+    /**
+     * Get the playlist for today
+     * @param $listData
+     * @param $discord
+     * @return array
+     */
     public function getListForToday($discord){
         $date = Carbon::today()->toDateString();
         return $this->getListForDate($date, $discord);
     }
 
-    //Builds a single song embed for output
+    /**
+     * Build a single song embed for output
+     * @param $embedOutput
+     * @param $discord
+     * @param $item
+     * @param $i
+     * @param $personName
+     * @param $url
+     * @return Embed|string
+     */
     public function buildEmbed($embedOutput, $discord, $item, $i, $personName, $url){
         try {
 
             $color = $this->getTrackColor($item['source']) ?? null;
 
-            $timeString = Carbon::parse($item['timestamp'])->settings([
-                'toStringFormat' => 'g:i:s a',
-            ]);
+            $timeString = Carbon::parse($item['timestamp'])->toDayDateTimeString();
+//                ->settings([
+//                'toStringFormat' => 'g:i:s a',
+//            ]
+//        );
             $embed = new Embed($discord);
             $embed->setTitle(("$i. " . $item['artist'] . " - " . $item['name']));
-            $embed->setDescription('' . $personName . ' @ '. $timeString . ' -=- ' . 'on ' . $item['source']  . " -=- ". $item['duration']);
+            $embed->setDescription('' . $personName . ' @ '. $timeString . ' -=- '. $item['duration'] . "                   ");
+//            $embed->setDescription('' . $personName . ' @ '. $timeString . ' -=- ' . 'on ' . $item['source']  . " -=- ". $item['duration']);
             $embed->setURL($url ?? null);
 //            $embed->setAuthor("$i. $personName @ $timeString" ?? "");
             $embed->setColor($color);
@@ -64,24 +103,58 @@ class Playlist extends Model
         }
     }
 
+    /**
+     * Gets the source of the track from the url and sets it in the db.
+     * @param $url
+     * @param $id
+     * @return string|null
+     */
     public function getSource($url, $id)
     {
-        if (stripos($url, 'youtube') || stripos($url, 'youtu.be')) {
+        if (stripos($url, 'youtube')
+            || stripos($url, 'youtu.be')
+            || stripos($url, 'youtube.app.goo.gl')
+            || stripos($url, 'youtube.com')
+            || stripos($url, 'youtube-nocookie.com')
+            || stripos($url, 'youtube.googleapis.com')
+        ) {
             $track = Playlist::find($id);
             $track->source = 'Youtube';
             $track->save();
             return 'Youtube';
-        } elseif (stripos($url, 'spotify')) {
+        }
+
+        elseif (stripos($url, 'spotify'
+            || stripos($url, 'open.spotify.com')
+            || stripos($url, 'spoti.fi')
+            || stripos($url, 'spotify.app.goo.gl'))) {
             $track = Playlist::find($id);
             $track->source = 'Spotify';
             $track->save();
             return 'Spotify';
         }
+
+        elseif(stripos($url, 'soundcloud')
+            || stripos($url, 'snd.sc')
+            || stripos($url, 'on.soundcloud.com')
+            || stripos($url, 'scdl')
+            || stripos($url, 'soundcloud.app.goo.gl')
+            || stripos($url, 'soundcloud.com')
+            || stripos($url, 'soundcloud.app.link')){
+            $track = Playlist::find($id);
+            $track->source = 'Soundcloud';
+            $track->save();
+            return 'Soundcloud';
+        }
         return null;
     }
 
-
-    //this function processes the playlist data from the db into embeds to output to discord
+    /**
+     * Processes the playlist data from the db into embeds to output to discord.
+     * @param $listData
+     * @param $discord
+     * @return array|array[]
+     */
     private function outputPlaylist($listData, $discord){
 
       try {
@@ -147,6 +220,11 @@ class Playlist extends Model
         return $embedArray;
     }
 
+    /**
+     * Selects a color for the item based on the source of the track.
+     * @param $source
+     * @return string
+     */
     private function getTrackColor($source)
     {
         switch($source){
@@ -159,6 +237,25 @@ class Playlist extends Model
             default:
                 return '0x0B5394';
         }
+    }
+
+    /**
+     * Relation to Person model
+     * @return BelongsTo
+     */
+    protected function person(){
+        return $this->belongsTo(Person::class);
+    }
+
+    /**
+     * Creates playlist for all of user's posts.
+     * @param $userId
+     * @param $discord
+     * @return array|array[]
+     */
+    public function getPlaylistForUser($userId, $discord){
+        $listData = $this->where('user_id', $userId)->get()->toArray();
+        return $this->outputPlaylist($listData, $discord);
     }
 
 }

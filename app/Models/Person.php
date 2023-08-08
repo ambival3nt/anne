@@ -66,4 +66,8 @@ class Person extends Model
     public function getNameList(){
         return $this->mappedNames()->pluck('alias')->toArray();
     }
+
+    public function songs(){
+        return $this->hasMany(Playlist::class, 'user_id', 'id');
+    }
 }
