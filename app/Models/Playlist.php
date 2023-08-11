@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Person;
 use Carbon\Carbon;
 use Discord\Discord;
 use Discord\Parts\Embed\Embed;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Person;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class Playlist extends Model
@@ -34,12 +35,38 @@ class Playlist extends Model
         switch($arg){
             case 'top':
                 $playlist = new Playlist();
-                $count = $playlist->all()->groupBy('user_id');
+                $count = Playlist::select('user_id', DB::raw('COUNT(*) as count'))
+                    ->groupBy('user_id')
+                    ->orderBy('count', 'DESC')
+                    ->get();
 
-return '';
+                $output = [];
+                $i = 1;
+
+                foreach($count as $topUser){
+
+Log::debug(json_encode("blaH BLAJKKLEG0/ " . $topUser . "/" . $message->author->avatar,128));
+                    $personModel = Person::find($topUser->user_id) ?? null;
+
+                    if($personModel) {
+                        $person = $personModel->name;
+                    }else{
+                        $person = 'THANKS DISCORD';
+                    }
+
+                    $output[] = [
+                        'rank' => $i,
+                        'name' =>  $person,
+                        'score' => $topUser->count,
+                    ];
+                    $i++;
+                }
+
+                return $message->reply('Most songs posted' . "\n\n" . json_encode($output,128));
+
+            default:
+                return '';
         }
-
-
     }
 
 
