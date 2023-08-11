@@ -23,15 +23,15 @@ try {
     $actualLastMessage = $lastMessage->message;
     $lastPerson = Person::find($lastMessage->user_id);
 
-    if ($lastMessage !== $person->last_message) {
-        $prompt .= "          \nThe last message you received was: $actualLastMessage from $lastPerson->name\n.";
-    }
-    if ($message->author->id !== $person->id) {
+//    if ($lastMessage !== $person->last_message) {
+//        $prompt .= "          \nThe last message you received was: $actualLastMessage from $lastPerson->name\n.";
+//    }
+//    if ($message->author->id !== $person->id) {
         $prompt = $prompt . "\n\nThe person you're speaking to now is $personNameShown, please refer to them by that name.\n";
         $prompt .= "\nThe last thing $personNameShown said to you was: $person->last_message\n";
-    } else {
-        $prompt = $prompt . "That's who you are speaking to now. $lastPerson->name\n.";
-    }
+//    } else {
+//        $prompt = $prompt . "That's who you are speaking to now. $lastPerson->name\n.";
+//    }
 
     $prompt = $prompt . "Your response was: $person->last_response\n";
 
@@ -42,7 +42,7 @@ try {
 
     $messages = Messages::all()->take(-5);
 
-    $historyString = "\n\nThis is the current, most recent conversation history:\n\n";
+    $historyString = "\n\nThis is the current, most recent chat history for the whole server:\n\n";
 
 
     foreach($messages as $userMessage){
@@ -54,19 +54,10 @@ try {
             "You replied: " .  $userMessage->anneReply->message . "\n\n"
             : "You did not reply.";
 
-        $historyString .= "\nFeel free to reference any of these messages to enrich your response, or address the other users in the list if its relevant.\n\n";
-
-        $prompt .= $historyString;
 
 };
-
-
-//        $mergeToWindow = [
-//            'last_message' => $actualLastMessage ?? '',
-//            'last_message_user' => $lastPerson->name ?? '',
-//            'last_message_user_id' => $lastMessage->user_id ?? null,
-//            'last_message_from_current' => $person->last_message ?? '',
-//        ];
+    $historyString .= "\nReference any of these messages to enrich your response, or address the other users mentioned in the history if its relevant.\n\n";
+    $prompt .=  $historyString;
 }catch(\Exception $e){
     Log::debug($e->getMessage());
 }
