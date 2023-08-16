@@ -47,7 +47,7 @@ class analyzeUserInput
                 'n' => 1,
             ]
         );
-        Log::debug(json_encode($result, 128));
+        Log::channel('db')->debug(json_encode($result, 128));
         return $result['choices'][0]['message']['content'];
 
     }
@@ -108,7 +108,7 @@ class analyzeUserInput
                 'n' => 1,
             ]
         );
-        Log::debug(json_encode($result, 128));
+        Log::channel('db')->debug(json_encode($result, 128));
         return $result['choices'][0]['text'];
 
     }
@@ -227,7 +227,7 @@ public function modelCommands($input, $user){
                 'n' => 1,
             ]
         );
-        Log::debug(json_encode($result, 128));
+        Log::channel('db')->debug(json_encode($result, 128));
         return $result['choices'][0]['text'];
     }
 }

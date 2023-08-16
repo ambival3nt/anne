@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Person;
 use Carbon\Carbon;
+use Discord\Builders\MessageBuilder;
 use Discord\Discord;
 use Discord\Parts\Embed\Embed;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -45,28 +46,74 @@ class Playlist extends Model
 
                 foreach($count as $topUser){
 
-Log::debug(json_encode("blaH BLAJKKLEG0/ " . $topUser . "/" . $message->author->avatar,128));
                     $personModel = Person::find($topUser->user_id) ?? null;
 
                     if($personModel) {
                         $person = $personModel->name;
+                        $id = $personModel->id;
+                        $avatar = $personModel->avatar ?? static::getUserAvatarUrl($discord, $personModel);
                     }else{
                         $person = 'THANKS DISCORD';
+                        $id = null;
+                        $avatar = null;
                     }
 
+
                     $output[] = [
+                        'id' => $id,
                         'rank' => $i,
                         'name' =>  $person,
                         'score' => $topUser->count,
+                        'avatar' => $avatar
                     ];
+
                     $i++;
                 }
 
-                return $message->reply('Most songs posted' . "\n\n" . json_encode($output,128));
+                $embedArray = static::embedListBuilder($discord, $message, $output, 'playlist');
+
+                $listMessage = new MessageBuilder();
+
+                foreach($embedArray as $embed){
+                    $listMessage->addEmbed($embed);
+                }
+
+                $message->channel->sendMessage('Top users by songs posted');
+                return $message->channel->sendMessage($listMessage);
+
 
             default:
                 return '';
         }
+    }
+
+    /**
+     * @param $discord
+     * @param $userData
+     * @return Embed|string
+     */
+    protected static function playlistSongPosts($discord, $userData): Embed|string
+    {
+        try {
+            $embed = new Embed($discord);
+            $embed->setTitle($userData['rank'] . ". " . ($userData['name']));
+            $embed->setDescription($userData['score'] . " songs posted.");
+            $embed->setThumbnail($userData['avatar']);
+            $embed->setColor(self::getRankColor($userData['rank']));
+            return $embed;
+
+        } catch (\Exception $e) {
+            Log::channel('db')->debug($e->getMessage());
+            return $e->getMessage() . ' L' . $e->getLine();
+        }
+    }
+
+    public static function getUserAvatarUrl($discord, $person)
+    {
+        $url = $discord->users->get('id', $person->id)->avatar ?? null;
+        $person->avatar = $url;
+        $person->save();
+        return $url;
     }
 
 
@@ -125,9 +172,19 @@ Log::debug(json_encode("blaH BLAJKKLEG0/ " . $topUser . "/" . $message->author->
             return $embed;
 
         }catch(\Exception $e){
-            Log::debug($e->getMessage());
+            Log::channel('db')->debug($e->getMessage());
             return $e->getMessage() . ' L' . $e->getLine();
         }
+    }
+
+
+    public static function buildTopListEmbed($discord, $message, $userData, $type='playlist'){
+
+        switch($type){
+            case 'playlist':
+                return self::playlistSongPosts($discord, $userData);
+        }
+
     }
 
     /**
@@ -241,7 +298,7 @@ Log::debug(json_encode("blaH BLAJKKLEG0/ " . $topUser . "/" . $message->author->
 
             }
       }catch(\Exception $e){
-            Log::debug($e->getMessage());
+            Log::channel('db')->debug($e->getMessage());
             $outputStr = "Uh yeah so it didn't work..." . $e->getMessage();
       }
         return $embedArray;
@@ -283,6 +340,46 @@ Log::debug(json_encode("blaH BLAJKKLEG0/ " . $topUser . "/" . $message->author->
     public function getPlaylistForUser($userId, $discord){
         $listData = $this->where('user_id', $userId)->get()->toArray();
         return $this->outputPlaylist($listData, $discord);
+    }
+
+    public static function embedListBuilder($discord, $message, array $output, $type='playlist')
+    {
+        $embedArray = [];
+
+        foreach($output as $person){
+            $embedArray[] = static::buildTopListEmbed($discord, $message, $person, $type);
+        }
+
+        return $embedArray;
+
+    }
+
+    public static function getRankColor($rank)
+    {
+        switch($rank){
+            case 1:
+                return '0xb45f06';
+            case 2:
+                return '0xbb6f1e';
+            case 3:
+                return '0xc37e37';
+            case 4:
+                return '0xca8f50';
+            case 5:
+                return '0xd29f69';
+            case 6:
+                return '0xd9af82';
+            case 7:
+                return '0xe1bf9b';
+            case 8:
+                return '0xe8cfb4';
+            case 9:
+                return '0xf0dfcd';
+            case 10:
+                return '0xf7efe6';
+            default:
+                return '0xffffff';
+        }
     }
 
 }

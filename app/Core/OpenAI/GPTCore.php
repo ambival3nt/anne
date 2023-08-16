@@ -46,7 +46,7 @@ class GPTCore
                     if($messageData) {
                         $messageData = $messageData->toArray() ?? [];
                     } else {
-                        Log::debug('Missing messageData on id: ' . $id);
+                        Log::channel('db')->debug('Missing messageData on id: ' . $id);
                         continue;
                     }
 
@@ -62,7 +62,7 @@ class GPTCore
                     $messageModel = new Messages;
                     $messageData = $messageModel->where('id', $id)->first()->toArray();
                     if (!$messageData) {
-                        Log::debug('Missing messageData on id: ' . $id);
+                        Log::channel('db')->debug('Missing messageData on id: ' . $id);
                         continue;
                     }
                     $messageOutput = $messageData['message'] ?? 'Could not load message.';
@@ -78,8 +78,8 @@ class GPTCore
             $output['content'] .= "Please, carefully consider if any of the messages are relevant before using them to create your response.\n\n";
 
         } catch (\Exception $e) {
-            Log::debug($e->getMessage() . " on line " . $e->getLine() . " in " . $e->getFile());
-            Log::debug("Vector prompt preload error.");
+            Log::channel('db')->debug($e->getMessage() . " on line " . $e->getLine() . " in " . $e->getFile());
+            Log::channel('db')->debug("Vector prompt preload error.");
             return $e->getMessage();
         }
         return $output;

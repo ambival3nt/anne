@@ -113,7 +113,7 @@ class bot_main
                             }
                         }
                     } catch (\Exception $e) {
-                        Log::debug($e->getMessage().' on line '. $e->getLine() . ' in ' . $e->getFile());
+                        Log::channel('db')->debug($e->getMessage().' on line '. $e->getLine() . ' in ' . $e->getFile());
                         return $message->reply("Stoppit.");
 //                        return $message->reply("Stoppit. I'll just tell you what's wrong:\n" . $e->getMessage().' on line '. $e->getLine() . ' in ' . $e->getFile());
                     }
@@ -138,7 +138,7 @@ class bot_main
                 || stripos($message->content, 'spotify.com') !== false
                 || stripos($message->content, 'open.spotify.com') !== false
             ) {
-                Log::debug('isMusicLink - ' . $message->content);
+                Log::channel('db')->debug('isMusicLink - ' . $message->content);
                 Playlist::grabMusicLinkUrl($message);
             }
         }

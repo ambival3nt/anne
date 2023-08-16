@@ -50,7 +50,7 @@ class Playlist
                     || stripos($url, 'soundcloud.app.goo.gl')
                     || stripos($url, 'soundcloud.com')
                     || stripos($url, 'soundcloud.app.link')) {
-                    Log::debug('soundcloud link detected');
+                    Log::channel('db')->debug('soundcloud link detected');
                     self::parseSoundcloudData($message, $url);
                 }
 
@@ -58,7 +58,7 @@ class Playlist
 
 
             } catch (\Exception $e) {
-                Log::debug($e->getMessage());
+                Log::channel('db')->debug($e->getMessage());
             }
             return false;
         }
@@ -132,7 +132,7 @@ if(str_contains($url, 'youtube.com')) {
     {
 
         sleep(2);
-        Log::debug(json_encode($message->embeds));
+        Log::channel('db')->debug(json_encode($message->embeds));
         $embed = json_decode(json_encode($message->embeds))[0] ?? null;
         if(!$embed) {
         $embed = data_get($message->embeds, '*', null)[0] ?? null;
@@ -147,7 +147,7 @@ if(str_contains($url, 'youtube.com')) {
             'thumbnail'=>data_get($embed, 'thumbnail.url', null),
         ];
 
-        Log::debug($soundcloudData);
+        Log::channel('db')->debug($soundcloudData);
 
         $playlist = new \App\Models\Playlist();
         $playlist->url = $url;

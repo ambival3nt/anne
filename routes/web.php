@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\InitBotController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Livewire\MessageHistory;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -26,6 +27,10 @@ Route::get('/dashboard', function () {
 Route::get('/botlogs', function () {
     return view('botlogs');
 })->middleware(['auth', 'verified'])->name('botlogs');
+//
+Route::get('/history', MessageHistory::class)
+    ->middleware(['auth', 'verified'])
+    ->name('history');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

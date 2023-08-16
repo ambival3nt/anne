@@ -31,4 +31,8 @@ class Messages extends Model
     {
         return $this->hasOne(Attachments::class, 'message_id', 'id');
     }
+    public function thoughts(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(ThoughtSummary::class, 'message_id', 'id');
+    }
 }

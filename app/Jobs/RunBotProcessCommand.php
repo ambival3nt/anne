@@ -44,7 +44,7 @@ class RunBotProcessCommand implements ShouldQueue
             } else {
                 echo '\nOUT > '.$buffer;
             }
-            Log::debug($buffer);
+            Log::channel('db')->debug($buffer);
         });
 
     }

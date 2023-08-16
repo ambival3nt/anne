@@ -3,6 +3,8 @@
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
+use Yoeriboven\LaravelLogDb\DatabaseLogger;
+
 
 return [
 
@@ -17,7 +19,7 @@ return [
     |
     */
 
-    'default' => env('LOG_CHANNEL', 'stack'),
+    'default' => env('LOG_CHANNEL', 'db'),
 
     /*
     |--------------------------------------------------------------------------
@@ -46,7 +48,7 @@ return [
     |
     | Available Drivers: "single", "daily", "slack", "syslog",
     |                    "errorlog", "monolog",
-    |                    "custom", "stack"
+    |                    "custom", "stack"logging
     |
     */
 
@@ -117,6 +119,14 @@ return [
         'emergency' => [
             'path' => storage_path('logs/laravel.log'),
         ],
+
+        'db' => [
+            'driver' => 'custom',
+            'via'    => DatabaseLogger::class,
+        ],
+
+
+
     ],
 
 ];

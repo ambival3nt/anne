@@ -15,6 +15,7 @@ use App\Models\AnneMessages;
 use App\Models\Messages;
 use App\Models\PeopleNameMapping;
 use App\Models\Person;
+use App\Models\ThoughtSummary;
 use Discord\Builders\MessageBuilder;
 use Discord\Discord;
 use Discord\Parts\Channel\Channel;
@@ -31,12 +32,15 @@ use OpenAI\Laravel\Facades\OpenAI;
 class OpenAICore
 {
     //This is the main query function for the bot, if it's going to be using OpenAI's API
-    private analyzeUserInput $analyzeUserInputFormatted;
+//    private analyzeUserInput $analyzeUserInputFormatted;
     private VectorQueryReturn $vectorQueryReturn;
 
     public function __construct()
     {
-        $this->analyzeUserInputFormatted = new analyzeUserInput();
+        // this is for her busted tool selection stuff
+//        $this->analyzeUserInputFormatted = new analyzeUserInput();
+
+        // this gets her vectors and makes them useful
         $this->vectorQueryReturn = new VectorQueryReturn($this);
     }
 
@@ -85,14 +89,13 @@ class OpenAICore
                 $resultArray = $vectorQueryResult->query($userEmbed);
 
                 //parse vectors into prompt
-                $promptWithVectors = $this->addHistoryFromVectorQuery($resultArray, $promptWithPreloads, $message) ?? "";
+                $vectorQuery = $this->addHistoryFromVectorQuery($resultArray, $message) ?? "";
 
-                //If using GPT api and format
-//                if(getenv('USE_GPT')){
-//                    $GPT = new GPTCore();
-//                    $result =  $GPT->init(discord: $discord, message: $message, person: $person, promptRemoveTag: $promptRemoveTag, userEmbed: $userEmbed);
-//                }
+                //prompt with history summary attached
+                $promptWithVectors = $vectorQuery['result'];
 
+                //summary alone for db later
+                $summary = $vectorQuery['summary'];
 
                 $userName= $message->author->displayname;
 
@@ -107,7 +110,7 @@ class OpenAICore
                             'prompt' => $promptWithPreloads,
 //                        'top_p' => .25,
                             'temperature' => 1,
-                            'max_tokens' => 600,
+                            'max_tokens' => 700,
                             'stop' => [
                                 '-----',
                             ],
@@ -125,7 +128,8 @@ class OpenAICore
                 $person->update([
                     'last_message' => $promptRemoveTag,
                     'last_response' => $responsePath,
-                    'message_count' => $person->message_count + 1
+                    'message_count' => $person->message_count + 1,
+                    'avatar' => $message->author->avatar,
                 ]);
 
 
@@ -140,6 +144,9 @@ class OpenAICore
                     'message' => $promptRemoveTag,
                     'response' => $responsePath
                 ]);
+
+
+
 
                 //Get cosine similarity locally (for testing, maybe permanent)
 //                $cosineSimilarity = Distance::cosineSimilarity($userEmbed, $anneEmbed);
@@ -160,8 +167,17 @@ class OpenAICore
                 ]);
 
 
+                // Save anne's summarized version of the history
+                $thoughtModel = new ThoughtSummary();
+
+                $thoughtModel = $thoughtModel->create([
+                    'message_id' => $messageModel->id,
+                    'response_id' => $anneMessage->id,
+                    'summary' => $summary,
+                ]);
+
             } catch (\Exception $e) {
-                Log::debug($e->getMessage());
+                Log::channel('db')->debug($e->getMessage());
                 return $message->reply($e->getMessage() . " on line " . $e->getLine() . " in " . $e->getFile() . ". Guess you better get on that.");
                 //    return $message->reply('For some reason I cannot explain, I do not have an answer.');
             }
@@ -191,10 +207,6 @@ class OpenAICore
             $builder->addFile($filename);
 
             return $message->reply($builder);
-
-//           return Discord::
-
-//            return $message->reply($result['data'][0]['url']);
         }
 
         else{
@@ -235,7 +247,7 @@ class OpenAICore
             ];
 
         } catch (\Exception $e) {
-            Log::debug($e->getMessage() . " on line " . $e->getLine() . " in " . $e->getFile());
+            Log::channel('db')->debug($e->getMessage() . " on line " . $e->getLine() . " in " . $e->getFile());
 
             return [
                 'success' => false,
@@ -282,7 +294,7 @@ try{
         $anneModel->last_message = $message->content ?? '';
         $anneModel->save();
 }catch(\Exception $e){
-    Log::debug($e->getMessage() . ' on line ' . $e->getLine());
+    Log::channel('db')->debug($e->getMessage() . ' on line ' . $e->getLine());
 }
 
    $lastMessage = null;
@@ -293,9 +305,23 @@ try{
         $person = Person::updateOrCreate(
             ['id' => $personId],
             ['name' => $personName]
-        );
+        ) ?? null;
 
-        $person = Person::find($personId);
+        $person = Person::find($personId) ?? null;
+
+        if(!$person){
+           $person = Person::create([
+                'id' => $personId,
+                'name' => $personName,
+                'avatar' => $message->author->avatar ?? null,
+            ]);
+        }
+
+
+        if(!$person->avatar){
+            $person->avatar = $message->author->avatar ?? null;
+            $person->save();
+        }
 
         try {
             if ($personNameShown !== $person->name) {
@@ -303,7 +329,7 @@ try{
                 $person->nameMapping($personNameShown, $personId, $personName);
             }
         }catch(\Exception $e){
-            Log::debug($e->getMessage() . ' on line ' . $e->getLine());
+            Log::channel('db')->debug($e->getMessage() . ' on line ' . $e->getLine());
         }
 
         $userAliasList = $person->getNameList();
@@ -335,7 +361,7 @@ try{
         return $this->vectorQueryReturn->vectorQueryReturnTest($message);
     }
 
-    private function addHistoryFromVectorQuery(array $resultArray, string $promptWithPreloads, $message)
+    private function addHistoryFromVectorQuery(array $resultArray, $message)
     {
 
          $vectorPrompt =   "";
@@ -346,7 +372,7 @@ try{
 
             //only use vectors with score above the threshhold (hardcoded to .79 for now, this will eventually move to front end)
             foreach ($resultArray['matches'] as $result) {
-                if ($result->score < 0.81) {
+                if ($result->score < 0.82) {
                     continue;
                 }
                 $isAnne = false;
@@ -371,7 +397,7 @@ try{
                         }
                     }
 }catch(\Exception $e){
-    Log::debug($e->getMessage() . ' on line ' . $e->getLine());
+    Log::channel('db')->debug($e->getMessage() . ' on line ' . $e->getLine());
 }
                     //grab anne message model, query it for that message id, pull result
                     $anneMessageModel = new AnneMessages;
@@ -380,7 +406,7 @@ try{
                     if ($messageData) {
                         $messageData = $messageData->toArray() ?? [];
                     } else {
-                        Log::debug('Missing messageData on id: ' . $id);
+                        Log::channel('db')->debug('Missing messageData on id: ' . $id);
                         continue;
                     }
 
@@ -408,7 +434,7 @@ try{
                         $messageModel = new Messages;
                         $messageData = $messageModel->with('anneReply')->where('id', $id)->first();
                         if (!$messageData) {
-                            Log::debug('Missing messageData on id: ' . $id);
+                            Log::channel('db')->debug('Missing messageData on id: ' . $id);
                             continue;
                         }
                         //same shit BUT we need to grab anne's response too, which I'm pretty sure I set up a relationship for
@@ -423,14 +449,14 @@ try{
                             $date = '[' . $result->metadata->dateTime . '] ' . $user . ": '" . $messageOutput;
 
                     }catch(\Exception $e) {
-                        Log::debug($e->getMessage() . ' on ' . $e->getLine());
+                        Log::channel('db')->debug($e->getMessage() . ' on ' . $e->getLine());
                         $message->channel->sendMessage("I'm gonna be... BLUUUEUEUEUEUGUEGHGHGHHrrrhghgh\n" . json_encode($result, 128));
                     }
                     if($anneReplyMessage) {
                         $vectorPrompt .= "\n" .
                             $date = '[' . Carbon::parse(data_get($anneReplyMessage, 'created_at', null)->toDateTimeString()) . '] ' . 'You: ' . trim($anneReplyMessage->message);
                     }else{
-                        Log::debug('Missing Anne response for messageId #'. $id . ". Expected: " . (string)$messageData->anneReply->id ?? '[!missing!]');
+                        Log::channel('db')->debug('Missing Anne response for messageId #'. $id . ". Expected: " . (string)$messageData->anneReply->id ?? '[!missing!]');
                     }
                     }
 
@@ -439,21 +465,23 @@ try{
 
         } catch (\Exception $e) {
             //handle errors, send to log (eventually on frontend)
-            Log::debug($e->getMessage() . " on line " . $e->getLine() . " in " . $e->getFile());
-            Log::debug("Vector prompt preload error.");
+            Log::channel('db')->debug($e->getMessage() . " on line " . $e->getLine() . " in " . $e->getFile());
+            Log::channel('db')->debug("Vector prompt preload error.");
         }
         //get summary from other model
         $summarized = $this->summarizeVectorResult($vectorPrompt);
 
         //Take the pre-prompt, which already has the user input, add some instructions for this, attach summarized chat history, return to main function
-        $result = $promptWithPreloads .
-            "Here is a summary of related conversations from your memory.\n
+        $result = "Here is a summary of related conversations from your memory.\n
             Use it or parts of it as a reference for your response, if it's relevant. Otherwise, you can ignore.\n
 
             \n\nSummary:\n"
             . $summarized;
 
-        return $summarized;
+        return [
+            'result'=>$result,
+            'summary'=>$summarized,
+            ];
     }
 
 
@@ -468,8 +496,10 @@ try{
 
         $summaryPrompt = "You are a summarization AI. Your current task is to summarize chat history. You will be given a list of messages with timestamps.
         You are to output a summary of the messages, in a way that is optimized as a prompt to give to a text-davinci-003 LLM. Carefully read all of the input before summarizing.\n\n
+        It is important that your summary be as concise, and short as possible, while still being accurate.\n\n
 
-            If a message starts with 'You: ' then the bot said it. Anything else, that's the user who said it.\n\n".
+
+        If a message starts with 'You: ' then the bot said it. Anything else, that's the user who said it.\n\n" .
             "If the message refers to 'anne', that means its referring to the text-davinci-003 LLM you are summarizing for.\n\n"
             . "-----\n\n"
             ."Input:\n\n"
@@ -483,7 +513,7 @@ try{
             Gils asked you what she thought of cats and you said yes, of cats on March 14th.\n\n
             ----- \n\n"
 
-            ."Input:\n\n" . $vectorPrompt . "\n\n ----- \n\n
+            . "Input:\n\n" . $vectorPrompt . "\n\n ----- \n\n
             Summary: \n\n";
 
 //        $result = OpenAI::completions()->create(['model' => 'text-davinci-003',
@@ -518,7 +548,7 @@ try{
         );
 
 //    $return = $result['choices'][0]['text'];
-Log::debug($result['choices'][0]['message']['content']);
+Log::channel('db')->debug($result['choices'][0]['message']['content']);
         $return = $result['choices'][0]['message']['content'];
 
     return $return;

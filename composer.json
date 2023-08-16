@@ -17,7 +17,8 @@
         "markrogoyski/math-php": "^2.7",
         "openai-php/laravel": "^0.3.0",
         "rich-davis1/phpw2v": "^1.1",
-        "team-reflex/discord-php": "^7.3"
+        "team-reflex/discord-php": "^7.3",
+        "yoeriboven/laravel-log-db": "^1.1"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",

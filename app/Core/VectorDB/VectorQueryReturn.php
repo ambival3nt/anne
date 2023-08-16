@@ -53,7 +53,7 @@ class VectorQueryReturn
                 $messageData = $anneMessageModel->where('input_id', $id)->first()->toArray() ?? [];
 
                 if (!$messageData) {
-                    Log::debug('Missing messageData on id: ' . $id);
+                    Log::channel('db')->debug('Missing messageData on id: ' . $id);
                     continue;
                 }
 
@@ -67,7 +67,7 @@ class VectorQueryReturn
                 $messageModel = new Messages;
                 $messageData = $messageModel->where('id', $id)->first()->toArray();
                 if (!$messageData) {
-                    Log::debug('Missing messageData on id: ' . $id);
+                    Log::channel('db')->debug('Missing messageData on id: ' . $id);
                     continue;
                 }
                 $messageOutput = $messageData['message'] ?? 'Could not load message.';

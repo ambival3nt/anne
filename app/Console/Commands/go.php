@@ -36,7 +36,7 @@ class go extends Command
 
         $bot = new bot_main();
 
-        Log::debug("Bot has started.");
+        Log::channel('db')->debug("Bot has started.");
         echo("\nBot is running.");
         $bot->init();
     }

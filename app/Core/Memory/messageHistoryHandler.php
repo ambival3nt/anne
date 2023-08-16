@@ -59,7 +59,7 @@ try {
     $historyString .= "\nReference any of these messages to enrich your response, or address the other users mentioned in the history if its relevant.\n\n";
     $prompt .=  $historyString;
 }catch(\Exception $e){
-    Log::debug($e->getMessage());
+    Log::channel('db')->debug($e->getMessage());
 }
         return [
             'prompt'=>$prompt,

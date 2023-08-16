@@ -24,7 +24,7 @@ class HandleCommandProcess
 
     public static function isValidCommand($command)
     {
-        Log::debug("command in: " . $command);
+        Log::channel('db')->debug("command in: " . $command);
         $commandList = [
             'ping',
             'help',
@@ -46,7 +46,7 @@ class HandleCommandProcess
 
     public static function runCommandOnContent($command, $content, $message, $owner, $commandArray, $discord)
     {
-        Log::debug("Command: $command\nContent: $content\nMessage: $message\nOwner: $owner");
+        Log::channel('db')->debug("Command: $command\nContent: $content\nMessage: $message\nOwner: $owner");
 
         $arg = "";
 
@@ -57,7 +57,7 @@ class HandleCommandProcess
                 $arg = $commandPart;
             }
         }
-Log::debug("Arg: $arg");
+Log::channel('db')->debug("Arg: $arg");
 
 
         switch ($command) {
@@ -112,12 +112,12 @@ Log::debug("Arg: $arg");
                     if ($arg === 'on') {
                         $anne = Anne::all()->first()->earmuffsToggle(true);
                         $anne->save();
-                        Log::debug("on - " . json_encode($anne, 128));
+                        Log::channel('db')->debug("on - " . json_encode($anne, 128));
                         return $message->reply("Earmuffs are on.");
                     } elseif ($arg === 'off') {
                         $anne = Anne::all()->first()->earmuffsToggle(false);
                         $anne->save();
-                        Log::debug("off - " . json_encode($anne, 128));
+                        Log::channel('db')->debug("off - " . json_encode($anne, 128));
                         return $message->reply("Earmuffs are off.");
                     } else {
                         return $message->reply("Earmuffs are currently " . ((boolean)Anne::all()->first()->earmuffs ? 'on' : 'off'));
@@ -133,12 +133,12 @@ Log::debug("Arg: $arg");
                     if ($arg === 'on') {
                         $anne = Anne::all()->first()->debugToggle(true);
                         $anne->save();
-                        Log::debug("on - " . json_encode($anne, 128));
+                        Log::channel('db')->debug("on - " . json_encode($anne, 128));
                         return $message->reply("Debug mode is on.");
                     } elseif ($arg === 'off') {
                         $anne = Anne::all()->first()->debugToggle(false);
                         $anne->save();
-                        Log::debug("off - " . json_encode($anne, 128));
+                        Log::channel('db')->debug("off - " . json_encode($anne, 128));
                         return $message->reply("Debug mode is off.");
                     } else {
                         return $message->reply("Debug mode is currently " . ((boolean)Anne::all()->first()->debug ? 'on' : 'off'));
@@ -183,16 +183,16 @@ Log::debug("Arg: $arg");
                 $default = true;
 
                 if($message->mentions->count() > 0){
-                   Log::debug('false');
+                   Log::channel('db')->debug('false');
                     $default=false;
                 }
 
                 if($arg == 'top') {
-                    Log::debug('top list');
+                    Log::channel('db')->debug('top list');
                     return Playlist::controller($discord, $message, $arg);
 
                 } else {
-                    Log::debug('regular');
+                    Log::channel('db')->debug('regular');
                     return self::createPlaylistMessage($discord, $message, 1, $default);
                 }
                 break;
@@ -201,8 +201,11 @@ Log::debug("Arg: $arg");
 
             case 'fart':
 
-                return $message->channel->sendMessage(ButtonService::testButton($discord));
-
+                $json = json_encode($user = $discord->users->get('id', '249180145481416704'));
+                for($i=0; $i<strlen($json);$i+=1999){
+                    $message->reply(substr($json,$i,1999));
+                }
+               return $message->reply("Farted.");
 
 
 
