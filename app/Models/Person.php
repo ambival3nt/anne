@@ -20,12 +20,13 @@ class Person extends Model
         'last_message_time',
         'message_count',
         'recent_alias',
+        'avatar',
     ];
 
     public function nameMapping($currentAlias, $personId=null, $personName=null){
 
       try {
-          Log::debug('Current Alias: ' . $currentAlias . ' Person ID: ' . $personId . ' Person Name: ' . $personName);
+          Log::channel('db')->debug('Current Alias: ' . $currentAlias . ' Person ID: ' . $personId . ' Person Name: ' . $personName);
 
           if ($currentAlias === '') {
               return false;
@@ -43,7 +44,7 @@ class Person extends Model
                       'alias' => $currentAlias,
                   ]);
               } catch (\Exception $e) {
-                  Log::debug($e->getMessage());
+                  Log::channel('db')->debug($e->getMessage());
                   return $e->getMessage() . ' L' . $e->getLine();
               }
           } else {
@@ -54,7 +55,7 @@ class Person extends Model
               ]);
           }
       }catch(\Exception $e){
-          Log::debug($e->getMessage());
+          Log::channel('db')->debug($e->getMessage());
       }
         return $mapping;
     }
@@ -65,5 +66,9 @@ class Person extends Model
 
     public function getNameList(){
         return $this->mappedNames()->pluck('alias')->toArray();
+    }
+
+    public function songs(){
+        return $this->hasMany(Playlist::class, 'user_id', 'id');
     }
 }

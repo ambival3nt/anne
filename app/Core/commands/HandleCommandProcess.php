@@ -10,6 +10,7 @@ use App\Core\Spotify\GetAPIToken;
 use App\Core\Spotify\QueryAPI;
 use App\Core\VectorDB\VectorQueryReturn;
 use App\Core\YouTube\VideoQuery;
+use App\Enums\AnneActions;
 use App\Models\Anne;
 use App\Models\Playlist;
 use App\Services\ButtonService;
@@ -23,7 +24,7 @@ class HandleCommandProcess
 
     public static function isValidCommand($command)
     {
-        Log::debug("command in: " . $command);
+        Log::channel('db')->debug("command in: " . $command);
         $commandList = [
             'ping',
             'help',
@@ -37,6 +38,7 @@ class HandleCommandProcess
             'fart',
             'test',
             'think',
+            'yoot',
         ];
 
         return in_array($command, $commandList, true);
@@ -44,7 +46,7 @@ class HandleCommandProcess
 
     public static function runCommandOnContent($command, $content, $message, $owner, $commandArray, $discord)
     {
-        Log::debug("Command: $command\nContent: $content\nMessage: $message\nOwner: $owner");
+        Log::channel('db')->debug("Command: $command\nContent: $content\nMessage: $message\nOwner: $owner");
 
         $arg = "";
 
@@ -55,10 +57,17 @@ class HandleCommandProcess
                 $arg = $commandPart;
             }
         }
+Log::channel('db')->debug("Arg: $arg");
 
 
         switch ($command) {
 
+
+            case 'yoot':
+
+                $m = substr($message->content, 6);
+                $youtubeResponse = (new VideoQuery)->search($m);
+                return $message->reply($youtubeResponse);
 
             case 'test':
                 $vectorReturn = new VectorQueryReturn(new OpenAICore());
@@ -103,12 +112,12 @@ class HandleCommandProcess
                     if ($arg === 'on') {
                         $anne = Anne::all()->first()->earmuffsToggle(true);
                         $anne->save();
-                        Log::debug("on - " . json_encode($anne, 128));
+                        Log::channel('db')->debug("on - " . json_encode($anne, 128));
                         return $message->reply("Earmuffs are on.");
                     } elseif ($arg === 'off') {
                         $anne = Anne::all()->first()->earmuffsToggle(false);
                         $anne->save();
-                        Log::debug("off - " . json_encode($anne, 128));
+                        Log::channel('db')->debug("off - " . json_encode($anne, 128));
                         return $message->reply("Earmuffs are off.");
                     } else {
                         return $message->reply("Earmuffs are currently " . ((boolean)Anne::all()->first()->earmuffs ? 'on' : 'off'));
@@ -124,12 +133,12 @@ class HandleCommandProcess
                     if ($arg === 'on') {
                         $anne = Anne::all()->first()->debugToggle(true);
                         $anne->save();
-                        Log::debug("on - " . json_encode($anne, 128));
+                        Log::channel('db')->debug("on - " . json_encode($anne, 128));
                         return $message->reply("Debug mode is on.");
                     } elseif ($arg === 'off') {
                         $anne = Anne::all()->first()->debugToggle(false);
                         $anne->save();
-                        Log::debug("off - " . json_encode($anne, 128));
+                        Log::channel('db')->debug("off - " . json_encode($anne, 128));
                         return $message->reply("Debug mode is off.");
                     } else {
                         return $message->reply("Debug mode is currently " . ((boolean)Anne::all()->first()->debug ? 'on' : 'off'));
@@ -166,21 +175,37 @@ class HandleCommandProcess
                 break;
 
             case 'command':
-                return self::extractSelfCommand($commandArray, $command, $message);
+                return self::extractSelfCommand($commandArray, $message);
                 break;
 
             //test command for playlist functionality
             case 'playlist':
-                return self::createPlaylistMessage($discord, $message, 1);
+                $default = true;
 
+                if($message->mentions->count() > 0){
+                   Log::channel('db')->debug('false');
+                    $default=false;
+                }
+
+                if($arg == 'top') {
+                    Log::channel('db')->debug('top list');
+                    return Playlist::controller($discord, $message, $arg);
+
+                } else {
+                    Log::channel('db')->debug('regular');
+                    return self::createPlaylistMessage($discord, $message, 1, $default);
+                }
                 break;
 //                return $message->channel->sendMessage("That's all the music posted today.");
 
 
             case 'fart':
 
-                return $message->channel->sendMessage(ButtonService::testButton($discord));
-
+                $json = json_encode($user = $discord->users->get('id', '249180145481416704'));
+                for($i=0; $i<strlen($json);$i+=1999){
+                    $message->reply(substr($json,$i,1999));
+                }
+               return $message->reply("Farted.");
 
 
 
@@ -191,17 +216,31 @@ class HandleCommandProcess
     }
 
     /**
+     * This function searches the message for a potential command/action to be executed by the bot.
      * @param $commandArray
-     * @param analyzeUserInput $command
      * @param $message
      * @return mixed
      */
-    protected static function extractSelfCommand($commandArray, analyzeUserInput $command, $message): mixed
+    protected static function extractSelfCommand($commandArray, $message): mixed
     {
-        $commandBody = array_shift($commandArray);
-        $commandBody = implode(" ", $commandArray);
+
+        // this is an array  that contains the elements of the user input word by word
+        $commandInputArray = array_shift($commandArray);
+        $commandInputArray = implode(" ", $commandArray);
+
+        //analyze the message
         $command = new analyzeUserInput();
-        $commandList = $command->actions($commandBody, $message->author->username);
+        //commandList is a string list of commands that the bot has decided are appropriate to use
+        $commandList = $command->actions($commandInputArray, $message->author->username);
+
+        $anneActionList = AnneActions::list();
+
+        foreach($anneActionList as $action){
+            if(stripos($commandList, $action)){
+               $message->channel->sendMessage('```I have the urge to '.$action.'```');
+            }
+        }
+
         return $message->reply($commandList);
     }
 
@@ -210,10 +249,18 @@ class HandleCommandProcess
      * @param $message
      * @return mixed
      */
-    public static function createPlaylistMessage($discord, $message, $currentPage=1): mixed
+    public static function createPlaylistMessage($discord, $message, $currentPage=1, $default=true): mixed
     {
         $playlist = new Playlist;
-        $retrievedList = $playlist->getListForToday($discord);
+        if($default) {
+            $retrievedList = $playlist->getListForToday($discord);
+            $typeOfList = "today";
+            $listTitle = Carbon::today()->toFormattedDayDateString();
+        } else {
+            $retrievedList = $playlist->getPlaylistForUser($message->mentions->first()->id, $discord);
+            $typeOfList = "user";
+            $listTitle = $message->mentions->first()->username . " - Total: " . count($retrievedList['embeds']);
+        }
         $playlistPageArray = [];
 
         //get total, then get number of pages
@@ -257,7 +304,7 @@ class HandleCommandProcess
         $messageWithPaginator = ButtonService::buildPaginator($totalPages, $currentPage, $discord, $playlistPageArray);
 
         //output
-        $message->channel->sendMessage("Playlist for: " . Carbon::today()->toFormattedDayDateString());
+        $message->channel->sendMessage("Playlist for: " . $listTitle);
         return $message->channel->sendMessage($messageWithPaginator);
 
     }

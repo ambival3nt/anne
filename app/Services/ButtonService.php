@@ -138,9 +138,7 @@ class ButtonService
                 $buttonRow->setDisabled(true);
             } else {
 
-                //recursive call on itself for when a paginator button is clicked, this SHOULD set up a listener for an 'interaction', which is what happens when a button is clicked
-                //in this case we want it to run this builder method again, passing in "playlistData" which is an array of already chunked song pages in message builder format
-                //we also pass in the current page number, and the total number of pages, which should mean we can just render $playlistData[$currentPage] and stick a fresh paginator on it
+                //recursive call on itself for when a paginator button is clicked, sets up a listener for an interaction and creates a new paginator.
                 $buttonRow->setListener(function (Interaction $interaction) use ($currentPage, $cleanPlaylistData, $i, $pageCount, $discord) {
                     $interaction->updateMessage(self::buildPaginator($pageCount, $i, $discord, $cleanPlaylistData));
 

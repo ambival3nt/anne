@@ -19,7 +19,7 @@ class Messages extends Model
 
     public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(Person::class, 'id', 'user_id');
+        return $this->belongsTo(Person::class, 'user_id','id');
     }
 
     public function anneReply(): \Illuminate\Database\Eloquent\Relations\HasOne
@@ -30,5 +30,9 @@ class Messages extends Model
     public function attachment(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(Attachments::class, 'message_id', 'id');
+    }
+    public function thoughts(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(ThoughtSummary::class, 'message_id', 'id');
     }
 }

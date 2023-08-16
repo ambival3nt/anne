@@ -16,7 +16,7 @@ class Lichess
             $gameId = $strArray[3];
             return $gameId;
         }catch(\Exception $e){
-            Log::debug($e->getMessage());
+            Log::channel('db')->debug($e->getMessage());
         }
     }
 
@@ -53,7 +53,7 @@ class Lichess
 
             $filename = 'chess' . Carbon::now()->toDateTimeString().'.gif';
             $put = file_put_contents($filename, $image);
-            Log::debug(json_encode($put));
+            Log::channel('db')->debug(json_encode($put));
             $builder = MessageBuilder::new();
 
             $output = $builder->addFile($filename);
@@ -61,7 +61,7 @@ class Lichess
             return $output;
 
         }catch(\Exception $e){
-                Log::debug($e->getMessage() . " " . $e->getLine() . " " . $e->getFile());
+                Log::channel('db')->debug($e->getMessage() . " " . $e->getLine() . " " . $e->getFile());
         }
 
     }

@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Person;
 use Carbon\Carbon;
+use Discord\Builders\MessageBuilder;
 use Discord\Discord;
 use Discord\Parts\Embed\Embed;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Person;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class Playlist extends Model
@@ -28,28 +31,138 @@ class Playlist extends Model
         'whole_embed',
     ];
 
+    public static function controller($discord, $message, mixed $arg)
+    {
+        switch($arg){
+            case 'top':
+                $playlist = new Playlist();
+                $count = Playlist::select('user_id', DB::raw('COUNT(*) as count'))
+                    ->groupBy('user_id')
+                    ->orderBy('count', 'DESC')
+                    ->get();
+
+                $output = [];
+                $i = 1;
+
+                foreach($count as $topUser){
+
+                    $personModel = Person::find($topUser->user_id) ?? null;
+
+                    if($personModel) {
+                        $person = $personModel->name;
+                        $id = $personModel->id;
+                        $avatar = $personModel->avatar ?? static::getUserAvatarUrl($discord, $personModel);
+                    }else{
+                        $person = 'THANKS DISCORD';
+                        $id = null;
+                        $avatar = null;
+                    }
+
+
+                    $output[] = [
+                        'id' => $id,
+                        'rank' => $i,
+                        'name' =>  $person,
+                        'score' => $topUser->count,
+                        'avatar' => $avatar
+                    ];
+
+                    $i++;
+                }
+
+                $embedArray = static::embedListBuilder($discord, $message, $output, 'playlist');
+
+                $listMessage = new MessageBuilder();
+
+                foreach($embedArray as $embed){
+                    $listMessage->addEmbed($embed);
+                }
+
+                $message->channel->sendMessage('Top users by songs posted');
+                return $message->channel->sendMessage($listMessage);
+
+
+            default:
+                return '';
+        }
+    }
+
+    /**
+     * @param $discord
+     * @param $userData
+     * @return Embed|string
+     */
+    protected static function playlistSongPosts($discord, $userData): Embed|string
+    {
+        try {
+            $embed = new Embed($discord);
+            $embed->setTitle($userData['rank'] . ". " . ($userData['name']));
+            $embed->setDescription($userData['score'] . " songs posted.");
+            $embed->setThumbnail($userData['avatar']);
+            $embed->setColor(self::getRankColor($userData['rank']));
+            return $embed;
+
+        } catch (\Exception $e) {
+            Log::channel('db')->debug($e->getMessage());
+            return $e->getMessage() . ' L' . $e->getLine();
+        }
+    }
+
+    public static function getUserAvatarUrl($discord, $person)
+    {
+        $url = $discord->users->get('id', $person->id)->avatar ?? null;
+        $person->avatar = $url;
+        $person->save();
+        return $url;
+    }
+
+
+    /**
+     * Get the playlist for specific date
+     * @param $date
+     * @param $discord
+     * @return array|array[]
+     */
     private function getListForDate($date=null, $discord){
         $listData = self::whereDate('created_at', $date)->get()->toArray();
         return $this->outputPlaylist($listData, $discord);
     }
 
+    /**
+     * Get the playlist for today
+     * @param $listData
+     * @param $discord
+     * @return array
+     */
     public function getListForToday($discord){
         $date = Carbon::today()->toDateString();
         return $this->getListForDate($date, $discord);
     }
 
-    //Builds a single song embed for output
+    /**
+     * Build a single song embed for output
+     * @param $embedOutput
+     * @param $discord
+     * @param $item
+     * @param $i
+     * @param $personName
+     * @param $url
+     * @return Embed|string
+     */
     public function buildEmbed($embedOutput, $discord, $item, $i, $personName, $url){
         try {
 
             $color = $this->getTrackColor($item['source']) ?? null;
 
-            $timeString = Carbon::parse($item['timestamp'])->settings([
-                'toStringFormat' => 'g:i:s a',
-            ]);
+            $timeString = Carbon::parse($item['timestamp'])->toDayDateTimeString();
+//                ->settings([
+//                'toStringFormat' => 'g:i:s a',
+//            ]
+//        );
             $embed = new Embed($discord);
             $embed->setTitle(("$i. " . $item['artist'] . " - " . $item['name']));
-            $embed->setDescription('' . $personName . ' @ '. $timeString . ' -=- ' . 'on ' . $item['source']  . " -=- ". $item['duration']);
+            $embed->setDescription('' . $personName . ' @ '. $timeString . ' -=- '. $item['duration'] . "                   ");
+//            $embed->setDescription('' . $personName . ' @ '. $timeString . ' -=- ' . 'on ' . $item['source']  . " -=- ". $item['duration']);
             $embed->setURL($url ?? null);
 //            $embed->setAuthor("$i. $personName @ $timeString" ?? "");
             $embed->setColor($color);
@@ -59,29 +172,73 @@ class Playlist extends Model
             return $embed;
 
         }catch(\Exception $e){
-            Log::debug($e->getMessage());
+            Log::channel('db')->debug($e->getMessage());
             return $e->getMessage() . ' L' . $e->getLine();
         }
     }
 
+
+    public static function buildTopListEmbed($discord, $message, $userData, $type='playlist'){
+
+        switch($type){
+            case 'playlist':
+                return self::playlistSongPosts($discord, $userData);
+        }
+
+    }
+
+    /**
+     * Gets the source of the track from the url and sets it in the db.
+     * @param $url
+     * @param $id
+     * @return string|null
+     */
     public function getSource($url, $id)
     {
-        if (stripos($url, 'youtube') || stripos($url, 'youtu.be')) {
+        if (stripos($url, 'youtube')
+            || stripos($url, 'youtu.be')
+            || stripos($url, 'youtube.app.goo.gl')
+            || stripos($url, 'youtube.com')
+            || stripos($url, 'youtube-nocookie.com')
+            || stripos($url, 'youtube.googleapis.com')
+        ) {
             $track = Playlist::find($id);
             $track->source = 'Youtube';
             $track->save();
             return 'Youtube';
-        } elseif (stripos($url, 'spotify')) {
+        }
+
+        elseif (stripos($url, 'spotify'
+            || stripos($url, 'open.spotify.com')
+            || stripos($url, 'spoti.fi')
+            || stripos($url, 'spotify.app.goo.gl'))) {
             $track = Playlist::find($id);
             $track->source = 'Spotify';
             $track->save();
             return 'Spotify';
         }
+
+        elseif(stripos($url, 'soundcloud')
+            || stripos($url, 'snd.sc')
+            || stripos($url, 'on.soundcloud.com')
+            || stripos($url, 'scdl')
+            || stripos($url, 'soundcloud.app.goo.gl')
+            || stripos($url, 'soundcloud.com')
+            || stripos($url, 'soundcloud.app.link')){
+            $track = Playlist::find($id);
+            $track->source = 'Soundcloud';
+            $track->save();
+            return 'Soundcloud';
+        }
         return null;
     }
 
-
-    //this function processes the playlist data from the db into embeds to output to discord
+    /**
+     * Processes the playlist data from the db into embeds to output to discord.
+     * @param $listData
+     * @param $discord
+     * @return array|array[]
+     */
     private function outputPlaylist($listData, $discord){
 
       try {
@@ -141,12 +298,17 @@ class Playlist extends Model
 
             }
       }catch(\Exception $e){
-            Log::debug($e->getMessage());
+            Log::channel('db')->debug($e->getMessage());
             $outputStr = "Uh yeah so it didn't work..." . $e->getMessage();
       }
         return $embedArray;
     }
 
+    /**
+     * Selects a color for the item based on the source of the track.
+     * @param $source
+     * @return string
+     */
     private function getTrackColor($source)
     {
         switch($source){
@@ -158,6 +320,65 @@ class Playlist extends Model
                 return '0xFF5500';
             default:
                 return '0x0B5394';
+        }
+    }
+
+    /**
+     * Relation to Person model
+     * @return BelongsTo
+     */
+    protected function person(){
+        return $this->belongsTo(Person::class);
+    }
+
+    /**
+     * Creates playlist for all of user's posts.
+     * @param $userId
+     * @param $discord
+     * @return array|array[]
+     */
+    public function getPlaylistForUser($userId, $discord){
+        $listData = $this->where('user_id', $userId)->get()->toArray();
+        return $this->outputPlaylist($listData, $discord);
+    }
+
+    public static function embedListBuilder($discord, $message, array $output, $type='playlist')
+    {
+        $embedArray = [];
+
+        foreach($output as $person){
+            $embedArray[] = static::buildTopListEmbed($discord, $message, $person, $type);
+        }
+
+        return $embedArray;
+
+    }
+
+    public static function getRankColor($rank)
+    {
+        switch($rank){
+            case 1:
+                return '0xb45f06';
+            case 2:
+                return '0xbb6f1e';
+            case 3:
+                return '0xc37e37';
+            case 4:
+                return '0xca8f50';
+            case 5:
+                return '0xd29f69';
+            case 6:
+                return '0xd9af82';
+            case 7:
+                return '0xe1bf9b';
+            case 8:
+                return '0xe8cfb4';
+            case 9:
+                return '0xf0dfcd';
+            case 10:
+                return '0xf7efe6';
+            default:
+                return '0xffffff';
         }
     }
 
