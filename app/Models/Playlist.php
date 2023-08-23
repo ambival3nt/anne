@@ -6,6 +6,7 @@ use App\Models\Person;
 use Carbon\Carbon;
 use Discord\Builders\MessageBuilder;
 use Discord\Discord;
+use Discord\Parts\Channel\Message;
 use Discord\Parts\Embed\Embed;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -73,14 +74,10 @@ class Playlist extends Model
                 $embedArray = static::embedListBuilder($discord, $message, $output, 'playlist');
 
                 $listMessage = new MessageBuilder();
-
-                foreach($embedArray as $embed){
+                foreach ($embedArray as $embed){
                     $listMessage->addEmbed($embed);
                 }
-
-                $message->channel->sendMessage('Top users by songs posted');
                 return $message->channel->sendMessage($listMessage);
-
 
             default:
                 return '';
@@ -110,7 +107,7 @@ class Playlist extends Model
 
     public static function getUserAvatarUrl($discord, $person)
     {
-        $url = $discord->users->get('id', $person->id)->avatar ?? null;
+        $url = $discord->users->get('id0', $person->id)->avatar ?? null;
         $person->avatar = $url;
         $person->save();
         return $url;

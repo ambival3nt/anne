@@ -15,7 +15,9 @@ class messageHistoryHandler
     {
 try {
     //alias list
-    $aliasListString = substr(implode(', ', $userAliasList), 0, -1);
+     if($userAliasList) {
+         $aliasListString = substr(implode(', ', $userAliasList), 0, -1);
+     }
     $anneMessages = new AnneMessages;
     $lastMessageId = $anneMessages->latest('id')->first()->input_id;
     $lastMessage = Messages::find($lastMessageId);
@@ -23,26 +25,29 @@ try {
     $actualLastMessage = $lastMessage->message;
     $lastPerson = Person::find($lastMessage->user_id);
 
-//    if ($lastMessage !== $person->last_message) {
-//        $prompt .= "          \nThe last message you received was: $actualLastMessage from $lastPerson->name\n.";
-//    }
-//    if ($message->author->id !== $person->id) {
-        $prompt = $prompt . "\n\nThe person you're speaking to now is $personNameShown, please refer to them by that name.\n";
-        $prompt .= "\nThe last thing $personNameShown said to you was: $person->last_message\n";
-//    } else {
-//        $prompt = $prompt . "That's who you are speaking to now. $lastPerson->name\n.";
-//    }
+    if(!$lastPerson->last_message){
+        $person->last_message = "Anne, I am a new user. My name is $personNameShown.";
+        $person->save();
+    }
 
+    if ($actualLastMessage !== $person->last_message) {
+        $prompt .= "          \nThe last message you received was:\n\n$lastPerson->name: \n$actualLastMessage\n-----";
+    }
+        $prompt = $prompt . "\n\nThe person you're speaking to now is $personNameShown, please refer to them by that name.\n";
+
+    $prompt .= "They are also known by the following names:\n
+         $aliasListString\nUse this to help connect your chat history with the person";
+
+    if($actualLastMessage == $person->last_message) {
+        $prompt .= "\nThe last thing $personNameShown said to you was: $person->last_message\n";
+    }
     $prompt = $prompt . "Your response was: $person->last_response\n";
 
 
-    $prompt .= "The person you are speaking to has used the following names:\n
-         $aliasListString\n
-         , use that list of names to help you identify them.\n";
 
     $messages = Messages::all()->take(-5);
 
-    $historyString = "\n\nThis is the current, most recent chat history for the whole server:\n\n";
+    $historyString = "\n\nThis is the most recent chat history, including your replies:\n\n";
 
 
     foreach($messages as $userMessage){
