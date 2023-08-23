@@ -314,6 +314,8 @@ try{
                 'id' => $personId,
                 'name' => $personName,
                 'avatar' => $message->author->avatar ?? null,
+                'last_message' => 'Hello Anne I am ' . $personName . " and we haven't met before.",
+                'last_response' => 'Hello ' . $personName . " I am Anne.",
             ]);
         }
 
@@ -332,7 +334,7 @@ try{
             Log::channel('db')->debug($e->getMessage() . ' on line ' . $e->getLine());
         }
 
-        $userAliasList = $person->getNameList();
+        $userAliasList = $person->getNameList() ?? [];
 
 
         $userAliasList = mb_convert_encoding($userAliasList, 'UTF-8', 'UTF-8');
@@ -341,12 +343,8 @@ try{
 
         // is it their first message? if not, let's add their stuff to the prompt
        $historyArray = [];
-        if ($person->message_count > 0) {
 
-            $historyArray = messageHistoryHandler::addMostRecentMessage($prompt, $person, $personNameShown, $message, $userAliasList);
-        }
-
-     //   $brainWindowArray = array_merge($brainWindowArray, $historyArray['brain']);
+       $historyArray = messageHistoryHandler::addMostRecentMessage($prompt, $person, $personNameShown, $message, $userAliasList) ?? [];
 
         return array($historyArray['prompt'], $person);
     }
