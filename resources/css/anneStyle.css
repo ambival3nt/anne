@@ -6,11 +6,7 @@
   --dark-bg: linear-gradient(hsl(228, 70%, 6%) 75%, hsl(0, 0%, 0%) 100%);
   --midnight: hsl(228, 70%, 6%);
   --ltblue: hsl(210, 35%, 60%);
-
-  --steelgray: hsl(240, 18%, 14%);
-  --oslogray: hsl(212, 7%, 55%);
-  --waterloo: hsl(233, 12%, 56%);
-  
+  --ltblack: hsl(0, 0%, 3%);
   
 /* @link https://utopia.fyi/type/calculator?c=640,16,1.125,1280,20,1.2,5,2,&s=0.75|0.5|0.25,1.5|2|3|4|6,s-l&g=s,l,xl,12 */
   --step--3: clamp(0.43rem, calc(0.39rem + 0.16vw), 0.51rem);
