@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Person;
+use App\Services\ButtonService;
 use Carbon\Carbon;
 use Discord\Builders\MessageBuilder;
 use Discord\Discord;
@@ -71,13 +72,9 @@ class Playlist extends Model
                     $i++;
                 }
 
-                $embedArray = static::embedListBuilder($discord, $message, $output, 'playlist');
+                $outputList = static::embedListBuilder($discord, $message, $output, 'playlist');
 
-                $listMessage = new MessageBuilder();
-                foreach ($embedArray as $embed){
-                    $listMessage->addEmbed($embed);
-                }
-                return $message->channel->sendMessage($listMessage);
+                return $message->channel->sendMessage($outputList->content, false, $outputList->embed);
 
             default:
                 return '';
@@ -176,6 +173,8 @@ class Playlist extends Model
 
 
     public static function buildTopListEmbed($discord, $message, $userData, $type='playlist'){
+
+
 
         switch($type){
             case 'playlist':
@@ -341,13 +340,38 @@ class Playlist extends Model
 
     public static function embedListBuilder($discord, $message, array $output, $type='playlist')
     {
-        $embedArray = [];
 
+        //alright i'm going to try to shoehorn the paginator into this
+        $totalItems = count($output);
+        $totalPages = ceil($totalItems / 2);
+
+        //i'm pretty terrified tbh
+        $pageArray = [];
+        $pageArray[] = null;
+        $messagePageBuilder = new MessageBuilder();
+
+        //nothing ever just like works, yknow?
+
+        $c = 0;
+        $pageIndex = 1;
+        //surely this will though
         foreach($output as $person){
-            $embedArray[] = static::buildTopListEmbed($discord, $message, $person, $type);
+
+            $messagePageBuilder->addEmbed(static::buildTopListEmbed($discord, $message, $person, $type));
+
+            if($c%2!=0 && $c != 0){
+                $pageArray[] = $messagePageBuilder;
+                $messagePageBuilder = new MessageBuilder();
+            }
+
+            $c++;
+
         }
 
-        return $embedArray;
+        //so anyway here's wonderwall
+             $thing = ButtonService::buildPaginator($totalPages, 1, $discord, $pageArray, 'topten');
+
+        return $message->channel->sendMessage($thing);
 
     }
 

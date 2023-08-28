@@ -15,12 +15,12 @@ use phpDocumentor\Reflection\Types\Compound;
 class ButtonService
 {
 
-    public static function buildPaginator($pageCount, $currentPage, $discord, $playlistData)
+    public static function buildPaginator($pageCount, $currentPage, $discord, $playlistData, $type=null)
     {
+
 
         //don't pay too much mind to these two buttons and how gnarly they look, they're just the previous and next buttons
         //setListener is the troublemaker though in all cases, it has a callback, which basically immediately fires that interaction.
-        //it works, but, after you click 1 again, the paginator duplicates
 
 
         //untouched copy of playlistData
@@ -79,13 +79,19 @@ class ButtonService
         $rowNum = 1;
 
         //Buttons *HAVE* to be in an 'actionrow' component
-        $row[1] = ActionRow::new()
-            ->addComponent($firstButton)
-            ->addComponent($prevButton)
-            ->addComponent($countButton)
-            ->addComponent($nextButton)
-            ->addComponent($lastButton);
-
+        if($type!=='topten') {
+            $row[1] = ActionRow::new()
+                ->addComponent($prevButton)
+                ->addComponent($nextButton);
+        }
+        else {
+            $row[1] = ActionRow::new()
+                ->addComponent($firstButton)
+                ->addComponent($prevButton)
+                ->addComponent($countButton)
+                ->addComponent($nextButton)
+                ->addComponent($lastButton);
+        }
 //        useless but saved to method because so much work you guys like so much work
 //        $row = self::buildNumberPaginator($pageCount, $rowNum, $row, $currentPage, $cleanPlaylistData, $discord, $emptyButtons);
 
