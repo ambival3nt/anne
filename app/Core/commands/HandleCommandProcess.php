@@ -8,6 +8,7 @@ use App\Core\OpenAI\OpenAICore;
 use App\Core\OpenAI\Prompts\analyzeUserInput;
 use App\Core\Spotify\GetAPIToken;
 use App\Core\Spotify\QueryAPI;
+use App\Core\Trivia\TriviaCore;
 use App\Core\VectorDB\VectorQueryReturn;
 use App\Core\YouTube\VideoQuery;
 use App\Enums\AnneActions;
@@ -39,6 +40,7 @@ class HandleCommandProcess
             'test',
             'think',
             'yoot',
+            'trivia',
         ];
 
         return in_array($command, $commandList, true);
@@ -198,6 +200,9 @@ Log::channel('db')->debug("Arg: $arg");
                 break;
 //                return $message->channel->sendMessage("That's all the music posted today.");
 
+            case 'trivia':
+                $trivia = new TriviaCore();
+                return $message->channel->sendMessage($trivia->init());
 
             case 'fart':
 
