@@ -30,26 +30,26 @@ class ButtonService
         $prevButton = Button::new(Button::STYLE_SUCCESS)
             ->setLabel('<')
             ->setDisabled($currentPage === 1)
-            ->setListener(function (Interaction $interaction) use ($playlistData, $currentPage, $pageCount, $discord) {
+            ->setListener(function (Interaction $interaction) use ($playlistData, $currentPage, $pageCount, $discord, $type) {
                 $interaction
-                    ->updateMessage(self::buildPaginator($pageCount, ($currentPage - 1), $discord, $playlistData));
+                    ->updateMessage(self::buildPaginator($pageCount, ($currentPage - 1), $discord, $playlistData, $type));
             }, $discord);
 
-        //create Previous button '<'
+        //create First button '<<'
         $firstButton = Button::new(Button::STYLE_SUCCESS)
             ->setLabel('first')
             ->setDisabled($currentPage === 1)
-            ->setListener(function (Interaction $interaction) use ($playlistData, $currentPage, $pageCount, $discord) {
+            ->setListener(function (Interaction $interaction) use ($playlistData, $currentPage, $pageCount, $discord, $type) {
                 $interaction
-                    ->updateMessage(self::buildPaginator($pageCount, 1, $discord, $playlistData));
+                    ->updateMessage(self::buildPaginator($pageCount, 1, $discord, $playlistData, $type));
             }, $discord);
 
         $lastButton = Button::new(Button::STYLE_SUCCESS)
             ->setLabel('last')
             ->setDisabled($currentPage === $pageCount)
-            ->setListener(function (Interaction $interaction) use ($playlistData, $currentPage, $pageCount, $discord) {
+            ->setListener(function (Interaction $interaction) use ($playlistData, $currentPage, $pageCount, $discord,  $type) {
                 $interaction
-                    ->updateMessage(self::buildPaginator($pageCount, $pageCount, $discord, $playlistData));
+                    ->updateMessage(self::buildPaginator($pageCount, $pageCount, $discord, $playlistData, $type));
             }, $discord);
 
 
@@ -62,9 +62,9 @@ class ButtonService
         $nextButton = Button::new(Button::STYLE_SUCCESS)
             ->setLabel('>')
             ->setDisabled((string)$currentPage == $pageCount)
-            ->setListener(function (Interaction $interaction) use ($playlistData, $currentPage, $pageCount, $discord) {
+            ->setListener(function (Interaction $interaction) use ($playlistData, $currentPage, $pageCount, $discord, $type) {
                 $interaction
-                    ->updateMessage(self::buildPaginator($pageCount, ($currentPage + 1), $discord, $playlistData));
+                    ->updateMessage(self::buildPaginator($pageCount, ($currentPage + 1), $discord, $playlistData, $type));
             }, $discord);
 
         //middle counter button that does nothing
@@ -79,7 +79,7 @@ class ButtonService
         $rowNum = 1;
 
         //Buttons *HAVE* to be in an 'actionrow' component
-        if($type!=='topten') {
+        if($type=='topten') {
             $row[1] = ActionRow::new()
                 ->addComponent($prevButton)
                 ->addComponent($nextButton);

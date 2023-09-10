@@ -16,6 +16,8 @@
         "livewire/livewire": "^2.10",
         "markrogoyski/math-php": "^2.7",
         "openai-php/laravel": "^0.3.0",
+        "react/async": "^4.1.0",
+        "react/promise-timer": "^1.10.0",
         "rich-davis1/phpw2v": "^1.1",
         "team-reflex/discord-php": "^7.3",
         "yoeriboven/laravel-log-db": "^1.1"

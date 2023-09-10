@@ -7,16 +7,26 @@ use App\Core\config\BotCredentials;
 use App\Core\config\InitBotConfig;
 use App\Core\Features\Playlist;
 use App\Core\OpenAI\OpenAICore;
+use App\Core\Trivia\TriviaCore;
 use App\Models\Anne;
+use App\Models\TriviaGame;
 use Discord\Discord;
 use Discord\Parts\Channel\Message;
 use Discord\WebSockets\Intents;
 use Illuminate\Support\Facades\Log;
+use React\EventLoop\Loop;
 
 class bot_main
 {
+
+    public function __construct(Discord $discord = null)
+    {
+        $this->discord = $discord ?? null;
+    }
+
     public function init()
     {
+
 
         //initialize the bot
 
@@ -35,9 +45,19 @@ class bot_main
         $token = (new BotCredentials)->getToken();
 
 
-        // start discord bot loop
-        $discord = new Discord(['token' => $token,
-            'intents' => Intents::getAllIntents()]);
+
+        if($this->discord){
+            $discord = $this->discord;
+        }else{
+            // start discord bot loop
+            $discord = new Discord([
+                'token' => $token,
+                'intents' => Intents::getAllIntents(),
+                'loop' => Loop::get(),
+            ]);
+
+
+        }
 
 
         $discord->on('ready', function (Discord $discord) use ($commandTag, $selfInfo, $ownerId, $lastMessage) {
@@ -48,6 +68,20 @@ class bot_main
                if(!$message->author->bot) {
                    $this->isMusicLink($message);
                }
+
+               $triviaGame = TriviaGame::first() ?? null;
+                if($triviaGame && $triviaGame->count() > 0){
+                   $triviaCore = new TriviaCore();
+                   $triviaReturn = $triviaCore->gameHandler($discord, $triviaGame, $message);
+
+                   if($triviaReturn['message']){
+                       $message->channel->sendMessage($triviaReturn['message']);
+                   }
+                   if($triviaReturn['error']){
+                       $triviaGame->abort();
+                       $message->channel->sendMessage('Error occurred. Aborting Game.');
+                   }
+                }
 
                 $reply = null;
                 $mention = null;

@@ -14,6 +14,7 @@ use App\Core\YouTube\VideoQuery;
 use App\Enums\AnneActions;
 use App\Models\Anne;
 use App\Models\Playlist;
+use App\Models\TriviaPlayers;
 use App\Services\ButtonService;
 use Carbon\Carbon;
 use Discord\Builders\MessageBuilder;
@@ -48,7 +49,7 @@ class HandleCommandProcess
 
     public static function runCommandOnContent($command, $content, $message, $owner, $commandArray, $discord)
     {
-        Log::channel('db')->debug("Command: $command\nContent: $content\nMessage: $message\nOwner: $owner");
+        Log::channel('daily')->debug("Command: $command\nContent: $content\nMessage: $message\nOwner: $owner");
 
         $arg = "";
 
@@ -201,12 +202,42 @@ Log::channel('db')->debug("Arg: $arg");
 //                return $message->channel->sendMessage("That's all the music posted today.");
 
             case 'trivia':
-                $trivia = new TriviaCore();
-                return $message->channel->sendMessage($trivia->init());
+
+                if($arg=='top'){
+                    $trivia = new TriviaPlayers;
+                    $topPlayers = $trivia->getTopPlayers();
+                    $topPlayersOutput = "Top players:\n";
+                    foreach($topPlayers as $player){
+                        $topPlayersOutput .= $player->username . " - " . $player->score . "\n";
+                    }
+                    return $message->channel->sendMessage($topPlayersOutput);
+                }
+
+               $game = new TriviaCore;
+               $gameStatus = $game->initGame($discord, $message);
+
+                   if ($gameStatus['error']) {
+                       return $message->reply($gameStatus['message']);
+               }elseif($gameStatus['game']){
+                   $questionOutput =
+                       "Round " . $gameStatus['game']->round . "\n
+                        Question: " . $gameStatus['game']->question . "\n
+                        ";
+                   return $message->channel->sendMessage($questionOutput);
+
+               }
+
+
+//                $out = $trivia->init($message);
+//                for($i=0; $i<strlen($out);$i+=1999) {
+//                    $message->channel->sendMessage(substr($out,$i,1999));
+//                }
+//                return $message->channel->sendMesssage('k');
+            break;
 
             case 'fart':
 
-                $json = json_encode($user = $discord->users->get('id', '249180145481416704'));
+                $json = json_encode($user = $message->author, 128);
                 for($i=0; $i<strlen($json);$i+=1999){
                     $message->reply(substr($json,$i,1999));
                 }
