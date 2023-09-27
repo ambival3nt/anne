@@ -35,15 +35,14 @@ class go extends Command
      */
     public function handle()
     {
-
-//        $game = TriviaGame::where('id', '>', 0)->first() ?? null;
-//        if (data_get($game, 'id', null) !== null) {
-//            TriviaGame::destroy($game->id);
-//        }
-//        $players = TriviaPlayers::where('user_id', '>', 0)->first() ?? null;
-//        if (data_get($players, 'user_id', null) !== null) {
-//            TriviaPlayers::destroy($players->user_id);
-//        }
+        $game = TriviaGame::where('id', '>', 0)->first() ?? null;
+        if (data_get($game, 'id', null) !== null) {
+            TriviaGame::destroy($game->id);
+        }
+        $players = TriviaPlayers::where('user_id', '>', 0)->first() ?? null;
+        if (data_get($players, 'user_id', null) !== null) {
+            TriviaPlayers::destroy($players->user_id);
+        }
 
         $bot = new bot_main();
 

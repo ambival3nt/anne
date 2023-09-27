@@ -15,9 +15,11 @@ use App\Enums\AnneActions;
 use App\Models\Anne;
 use App\Models\Playlist;
 use App\Models\TriviaPlayers;
+use App\Models\TriviaScores;
 use App\Services\ButtonService;
 use Carbon\Carbon;
 use Discord\Builders\MessageBuilder;
+use Discord\Parts\Embed\Embed;
 use Illuminate\Support\Facades\Log;
 use phpw2v\Word2Vec;
 
@@ -42,6 +44,7 @@ class HandleCommandProcess
             'think',
             'yoot',
             'trivia',
+            'compare',
         ];
 
         return in_array($command, $commandList, true);
@@ -49,18 +52,18 @@ class HandleCommandProcess
 
     public static function runCommandOnContent($command, $content, $message, $owner, $commandArray, $discord)
     {
-        Log::channel('daily')->debug("Command: $command\nContent: $content\nMessage: $message\nOwner: $owner");
+        Log::debug("Command: $command\nContent: $content\nMessage: $message\nOwner: $owner");
 
-        $arg = "";
+        $commandArg = "";
 
         foreach ($commandArray as $index => $commandPart) {
             if ($index === 0) {
                 $command = $commandPart;
             } else {
-                $arg = $commandPart;
+                $commandArg .= " " . $commandPart;
             }
         }
-Log::channel('db')->debug("Arg: $arg");
+Log::channel('db')->debug("Arg: $commandArg");
 
 
         switch ($command) {
@@ -112,12 +115,12 @@ Log::channel('db')->debug("Arg: $arg");
             //earmuffs (respond to owner only)
             case 'earmuffs':
                 if ($owner) {
-                    if ($arg === 'on') {
+                    if ($commandArg === 'on') {
                         $anne = Anne::all()->first()->earmuffsToggle(true);
                         $anne->save();
                         Log::channel('db')->debug("on - " . json_encode($anne, 128));
                         return $message->reply("Earmuffs are on.");
-                    } elseif ($arg === 'off') {
+                    } elseif ($commandArg === 'off') {
                         $anne = Anne::all()->first()->earmuffsToggle(false);
                         $anne->save();
                         Log::channel('db')->debug("off - " . json_encode($anne, 128));
@@ -133,12 +136,12 @@ Log::channel('db')->debug("Arg: $arg");
             //debug toggle
             case 'debug':
                 if ($owner) {
-                    if ($arg === 'on') {
+                    if ($commandArg === 'on') {
                         $anne = Anne::all()->first()->debugToggle(true);
                         $anne->save();
                         Log::channel('db')->debug("on - " . json_encode($anne, 128));
                         return $message->reply("Debug mode is on.");
-                    } elseif ($arg === 'off') {
+                    } elseif ($commandArg === 'off') {
                         $anne = Anne::all()->first()->debugToggle(false);
                         $anne->save();
                         Log::channel('db')->debug("off - " . json_encode($anne, 128));
@@ -153,11 +156,11 @@ Log::channel('db')->debug("Arg: $arg");
             case 'embed':
                 $time1 = Carbon::now();
                 $vecThing = new Word2Vec();
-                $embed = $vecThing->wordVec($arg);
+                $embed = $vecThing->wordVec($commandArg);
                 $time2 = Carbon::now();
                 $timeDiff = $time1->diffInMilliseconds($time2);
                 $output =
-                    "Input: $arg\n
+                    "Input: $commandArg\n
                     Output: " . json_encode($embed) . "\n
                     Took: " . $timeDiff . "ms";
                 return $message->reply($output);
@@ -168,8 +171,8 @@ Log::channel('db')->debug("Arg: $arg");
             case 'chess':
                 $lichess = new Lichess;
                 try {
-                    if (stripos($arg, 'lichess') !== false) {
-                        $lichessOutput = $lichess->exportGame(Lichess::getLichessGameId($arg));
+                    if (stripos($commandArg, 'lichess') !== false) {
+                        $lichessOutput = $lichess->exportGame(Lichess::getLichessGameId($commandArg));
                     }
                     return $message->reply($lichessOutput);
                 } catch (\Exception $e) {
@@ -190,27 +193,26 @@ Log::channel('db')->debug("Arg: $arg");
                     $default=false;
                 }
 
-                if($arg == 'top') {
+                if($commandArg == 'top') {
                     Log::channel('db')->debug('top list');
-                    return Playlist::controller($discord, $message, $arg);
+                    return Playlist::controller($discord, $message, $commandArg);
 
                 } else {
                     Log::channel('db')->debug('regular');
                     return self::createPlaylistMessage($discord, $message, 1, $default);
                 }
                 break;
-//                return $message->channel->sendMessage("That's all the music posted today.");
+
 
             case 'trivia':
+                $commandArg = ltrim($commandArg);
 
-                if($arg=='top'){
-                    $trivia = new TriviaPlayers;
-                    $topPlayers = $trivia->getTopPlayers();
-                    $topPlayersOutput = "Top players:\n";
-                    foreach($topPlayers as $player){
-                        $topPlayersOutput .= $player->username . " - " . $player->score . "\n";
-                    }
-                    return $message->channel->sendMessage($topPlayersOutput);
+                if($commandArg==='top'){
+                    $trivia = new TriviaScores;
+                    $topPlayers = $trivia->getTopScores();
+
+                   return $message->channel->sendMessage($topPlayers);
+                   break;
                 }
 
                $game = new TriviaCore;
@@ -220,9 +222,7 @@ Log::channel('db')->debug("Arg: $arg");
                        return $message->reply($gameStatus['message']);
                }elseif($gameStatus['game']){
                    $questionOutput =
-                       "Round " . $gameStatus['game']->round . "\n
-                        Question: " . $gameStatus['game']->question . "\n
-                        ";
+                       "Round " . $gameStatus['game']->round . "\nQuestion: " . $gameStatus['game']->question . "\n";
                    return $message->channel->sendMessage($questionOutput);
 
                }
@@ -236,13 +236,34 @@ Log::channel('db')->debug("Arg: $arg");
             break;
 
             case 'fart':
+                $details = [
+                    'winner'=> 'so and so',
+                    'question' => 'what is a butt?',
+                    'answer' => 'thing that farts',
+                    'score' => 4,
+                    'avatar' => 'https://cdn.discordapp.com/avatars/249180145481416704/327960385dd4e11680bb5bfc16d3da76.webp?size=1024'
+                ];
 
-                $json = json_encode($user = $message->author, 128);
-                for($i=0; $i<strlen($json);$i+=1999){
-                    $message->reply(substr($json,$i,1999));
-                }
-               return $message->reply("Farted.");
+                $fart = new MessageBuilder();
+                $fartEmbed = TriviaCore::buildCorrectEmbed($discord, $details);
+                $fart->addEmbed($fartEmbed);
 
+return $message->channel->sendMessage($fart);
+                break;
+
+            case 'compare':
+
+
+                $output = "Input 1: $commandArray[1]
+                Input 2: $commandArray[2]
+                Levenshtein:" . levenshtein($commandArray[1], $commandArray[2]) . "\n
+                Similar Text:" . similar_text($commandArray[1], $commandArray[2], $percent) . "\n
+                Similar Percent: $percent\n
+                Metaphone: " . metaphone($commandArray[1]) . " - " . metaphone($commandArray[2]) . "\n
+                Metaphone Levenshtein: " . levenshtein(metaphone($commandArray[1]), metaphone($commandArray[2])) . "\n
+                ";
+
+                return $message->reply($output);
 
 
             default:
@@ -296,6 +317,17 @@ Log::channel('db')->debug("Arg: $arg");
             $retrievedList = $playlist->getPlaylistForUser($message->mentions->first()->id, $discord);
             $typeOfList = "user";
             $listTitle = $message->mentions->first()->username . " - Total: " . count($retrievedList['embeds']);
+
+            //Label Row
+            if (!$default) {
+                $userLabelEmbed = new Embed($discord);
+
+                $listUser = $discord->users->get('id', $message->mentions->first()->id);
+                $url='https://cdn.discordapp.com/avatars/' . $listUser->id . '/' . $listUser->avatar . '.webp?size=16';
+                $userLabelEmbed->setThumbnail($url);
+                $userLabelEmbed->setDescription($listUser->username . ' - Total songs posted: ' . count($retrievedList));
+            }
+
         }
         $playlistPageArray = [];
 
@@ -307,6 +339,9 @@ Log::channel('db')->debug("Arg: $arg");
         if (!$retrievedList['hasItems']) {
             return $message->channel->sendMessage("No items in playlist for today. How boring.");
         } else {
+
+
+
 
             //create array of pages (one page is one message) of 5 embeds max each
             $playlistMessage = new MessageBuilder();
@@ -320,6 +355,10 @@ Log::channel('db')->debug("Arg: $arg");
                 $playlistMessage->addEmbed($embed);
 
                 if ($i % 5 === 0 && $i !== 0) {
+                    $playlistMessage->addEmbed($embed);
+                    if(!$default){
+                        $playlistMessage->addEmbed($userLabelEmbed);
+                    }
                     $playlistPageArray[$page] = $playlistMessage;
                     $playlistMessage = new MessageBuilder();
                     $page++;

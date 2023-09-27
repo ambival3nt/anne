@@ -102,11 +102,19 @@ class OpenAICore
                 $promptWithPreloads .= "-----\n" . $promptWithVectors;
                 $promptWithPreloads .= "\n User: $promptRemoveTag\n\n
 
+
+
                 Anne: ";
 
+//                $functionCaller = $this->getFunctions($promptRemoveTag);
+
+//                $message->channel->sendMessage(json_encode($functionCaller,128));
+//                Log::debug(json_encode($functionCaller,128));
                 //get davinci response
 
-                    $result = OpenAI::completions()->create(['model' => 'text-davinci-003',
+                    $result = OpenAI::completions()->create([
+//                        'model' => 'text-davinci-003',
+                        'model' => 'gpt-3.5-turbo-instruct',
                             'prompt' => $promptWithPreloads,
 //                        'top_p' => .25,
                             'temperature' => 1,
@@ -114,7 +122,6 @@ class OpenAICore
                             'stop' => [
                                 '-----',
                             ],
-
                             'frequency_penalty' => 1.2,
                             'presence_penalty' => 1.2,
                             'best_of' => 2,
@@ -183,9 +190,9 @@ class OpenAICore
             }
 
             //todo: if this debug shit all works move it to its own class to be invoked anywhere we need it
-            if(Anne::all()->first()->debug){
+           // if(Anne::all()->first()->debug){
 //                $responsePath .= "\nCosine Similarity: " . $cosineSimilarity;
-            }
+//            }
 
             return $message->reply($responsePath);
         }elseif ((str_starts_with(strtolower($message->content), "anne show me ") ) && !$message->author->bot) {
@@ -379,7 +386,7 @@ try{
                     $isAnne = true;
                     //get message id
                     $id = substr($result->id, 5);
-try{
+                    try{
 
                     if ($id) {
                         $priorMessageData = Messages::find($id) ?? null;
@@ -394,9 +401,9 @@ try{
                             $priorMessageOutput = '';
                         }
                     }
-}catch(\Exception $e){
-    Log::channel('db')->debug($e->getMessage() . ' on line ' . $e->getLine());
-}
+                    }catch(\Exception $e){
+                    Log::channel('db')->debug($e->getMessage() . ' on line ' . $e->getLine());
+                }
                     //grab anne message model, query it for that message id, pull result
                     $anneMessageModel = new AnneMessages;
                     $messageData = $anneMessageModel->where('input_id', $id)->first() ?? null;
@@ -467,7 +474,7 @@ try{
             Log::channel('db')->debug("Vector prompt preload error.");
         }
         //get summary from other model
-        $summarized = $this->summarizeVectorResult($vectorPrompt);
+        $summarized = $this->summarizeVectorResult($vectorPrompt, $message);
 
         //Take the pre-prompt, which already has the user input, add some instructions for this, attach summarized chat history, return to main function
         $result = "Here is a summary of related conversations from your memory.\n
@@ -489,82 +496,171 @@ try{
     }
 
     //This is the function that summarizes the chat history that we retrieved from the vector query. TODO: improve this prompt
-    private function summarizeVectorResult(string $vectorPrompt)
+    private function summarizeVectorResult(string $vectorPrompt, $message)
     {
 
-        $summaryPrompt = "You are a summarization AI. Your current task is to summarize chat history. You will be given a list of messages with timestamps.
-        You are to output a summary of the messages, in a way that is optimized as a prompt to give to a text-davinci-003 LLM. Carefully read all of the input before summarizing.\n\n
-        It is important that your summary be as concise, and short as possible, while still being accurate.\n\n
+        $userInput = $message->content ?? '';
+        $mention = $message->mentions->first() ?? null;
 
+        if ($mention) {
+            $userInput = str_replace('@' . $mention->id, 'anne', $message->content);
+        } elseif (str_starts_with(strtolower($message->content), "anne,") && !$message->author->bot) {
+            $userInput = substr($message->content, 5);
+        }
 
+        $summaryPrompt = "You are a chat summarization AI. You will be given a list of messages with timestamps.
+       You are to output a summary of the relevant messages,  optimized as a prompt to give to a LLM named Anne. Carefully read all of the input before summarizing.\n\n
+        It is important that your summary be as concise, and short as possible, while still being accurate. Use the supplied current user input as reference for your summary, and discard any history that seems unrelated.\n\n
+
+IMPORTANT: Anne is a fictional character. A human. But she never breaks character.\n
+IMPORTANT: The summary is for Anne. The summary should be a prompt for Anne to use to respond.\n
+IMPORTANT: Try to keep it in chronological order.\n
+
+       IMPORTANT: Here is the current user input: \n\n
+
+       $userInput\n\n
+         Here is the chat history you are summarizing:\n\n
+        $vectorPrompt\n\n
         If a message starts with 'You: ' then the bot said it. Anything else, that's the user who said it.\n\n" .
-            "If the message refers to 'anne', that means its referring to the text-davinci-003 LLM you are summarizing for.\n\n"
-            . "-----\n\n"
-            ."Input:\n\n"
-            ."[2023-03-01 12:29:48] ambi: What do you think of cheese?\n\n
-            [2023-03-01 12:29:50] You: I think cheese is great!\n\n
-            [2023-03-14 11:29:48] gils: What do I think of cats?\n\n
-            [2023-03-14 11:29:50] You: Yes, of cats.\n\n
-            ----- \n\n
-            Summary:
-            Ambi asked you what you thought of cheese and you said you thought cheese was great on March 1st.\n
-            Gils asked you what she thought of cats and you said yes, of cats on March 14th.\n\n
-            ----- \n\n"
+        "If the message refers to 'anne', that means its referring to the LLM you are summarizing or.\n\n" .
+            "When you are finished go over your summary again and see if it can be improved."
+        . "Summary: \n\n";
 
-            . "Input:\n\n" . $vectorPrompt . "\n\n ----- \n\n
-            Summary: \n\n";
-
-//        $result = OpenAI::completions()->create(['model' => 'text-davinci-003',
-//                'prompt' => $summaryPrompt,
-//                'max_tokens' => 600,
-//                'stop' => [
-//                    '-----',
-//                ],
-//                'n' => 1,
-//            ]
-//        );
-
-        $result = OpenAI::chat()->create([
-                'model' => 'gpt-3.5-turbo',
-
-                'messages' => [
-                    [
-                        "role" => "system",
-                        "content" => $summaryPrompt,
-                    ],
-                    ],
-                    'temperature' => .1,
-                    'max_tokens' => 600,
-                    'stop' => [
-                        '-----',
-                    ],
-                    'frequency_penalty' => 1.2,
-                    'presence_penalty' => 1.2,
-                    'n' => 1,
-                ]
-
+        $result = OpenAI::completions()->create([
+                'model' => 'gpt-3.5-turbo-instruct',
+                'prompt' => $summaryPrompt,
+                'max_tokens' => 600,
+                'stop' => [
+                    '-----',
+                ],
+                'n' => 1,
+            ]
         );
 
-//    $return = $result['choices'][0]['text'];
-Log::channel('db')->debug($result['choices'][0]['message']['content']);
-        $return = $result['choices'][0]['message']['content'];
+//        $result = OpenAI::chat()->create([
+//                'model' => 'gpt-3.5-turbo',
+//
+//                'messages' => [
+//                    [
+//                        "role" => "system",
+//                        "content" => $summaryPrompt,
+//                    ],
+//                    ],
+//                    'temperature' => .1,
+//                    'max_tokens' => 600,
+//                    'stop' => [
+//                        '-----',
+//                    ],
+//                    'frequency_penalty' => 1.2,
+//                    'presence_penalty' => 1.2,
+//                    'n' => 1,
+//                ]
+//
+//        );
+
+    $return = $result['choices'][0]['text'];
+//Log::channel('db')->debug($result['choices'][0]['message']['content']);
+//        $return = $result['choices'][0]['message']['content'];
 
     return $return;
 
     }
 
-    private function buildBrainWindowEmbed(mixed $brainArray, $discord)
+    public function getFunctions($prompt)
     {
-        $embed = new Embed($discord);
-        $embed->setTitle(("Anne's Brain"));
-        $embed->setDescription("We're going to fucking get this figured out dammit");
-        foreach($brainArray as $name=>$field) {
-            $embed->addFieldValues(
-                    $name,$field,false
-                );
-        }
-        return $embed;
+
+        $system = "Your job is to run the proper function based on the user's request.\n";
+
+        $functions = [
+            [
+                "name" => "do_web_search",
+                "description" => "Do a web search for the requested query",
+                "parameters" => [
+                    "type" => "object",
+                    "properties" => [
+                    ],
+                    "required" => ["query"],
+                ],
+            ]
+        ];
+//
+//        'functions' => [
+//        [
+//            'name' => 'get_current_weather',
+//            'description' => 'Get the current weather in a given location',
+//            'parameters' => [
+//                'type' => 'object',
+//                'properties' => [
+//                    'location' => [
+//                        'type' => 'string',
+//                        'description' => 'The city and state, e.g. San Francisco, CA',
+//                    ],
+//                    'unit' => [
+//                        'type' => 'string',
+//                        'enum' => ['celsius', 'fahrenheit']
+//                    ],
+//                ],
+//                'required' => ['location'],
+//            ],
+//        ]
+//    ]
+
+
+
+        $prompto = OpenAI::chat()->create([
+                'model' => 'gpt-3.5-turbo-0613',
+                'messages' => [
+
+                    [
+                        "role" => "system",
+                        "content" => $system,
+                    ],
+                    [
+                        "role" => "user",
+                        "content" => $prompt,
+                    ],
+                    [
+                        "role"=>"assistant",
+                        "content"=>"What function should I call?"
+                    ]
+
+                ],
+                'temperature' => .1,
+                'max_tokens' => 600,
+                'stop' => [
+                    '-----',
+                ],
+                'functions'=>$functions,
+                'frequency_penalty' => 1.2,
+                'presence_penalty' => 1.2,
+                'n' => 1,
+            ]
+        );
+$outie = [];
+    foreach($prompto as $result){
+        Log::debug(json_encode($result));
+        $outie[]= $result->message->functionCall->name ?? null;
     }
 
+//        if response_message.get("function_call"):
+//            # Step 3: call the function
+//            # Note: the JSON response may not always be valid; be sure to handle errors
+//            available_functions = {
+//            "get_current_weather": get_current_weather,
+//        }  # only one function in this example, but you can have multiple
+//        function_name = response_message["function_call"]["name"]
+//        fuction_to_call = available_functions[function_name]
+//        function_args = json.loads(response_message["function_call"]["arguments"])
+//        function_response = fuction_to_call(
+//            location=function_args.get("location"),
+//            unit=function_args.get("unit"),
+//        )
 
+return $outie;
+    }
+
+    public function webSearch($query){
+        Log::debug('I work!');
+        return 'I work!';
+    }
 }

@@ -22,7 +22,8 @@ class TriviaGame extends Model
         'question',
         'answer',
         'round',
-        'question_blob'
+        'question_blob',
+        'question_key',
     ];
 
     /**
@@ -50,6 +51,7 @@ class TriviaGame extends Model
             'question' => null,
             'answer' => null,
             'question_blob' => $blob,
+            'question_key' => 0,
         ]) ?? null;
 
             return $newGame;
@@ -60,6 +62,17 @@ class TriviaGame extends Model
         $this->delete();
     }
 
+    public function getNewQuestionBlob(){
+        $blob = Http::get('https://the-trivia-api.com/v2/questions', [
+            'limit'=> 50,
+        ])->json();
+
+        $this->question_blob = json_encode($blob);
+        $this->question_key = 0;
+        $this->save();
+
+        return $this;
+    }
 
 
 }

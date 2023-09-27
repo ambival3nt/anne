@@ -16,7 +16,11 @@ class TriviaScores extends Model
 {
     use HasFactory;
 
+    public $primaryKey = 'user_id';
+
     protected $table = 'trivia_scores';
+
+    public $timestamps = false;
 
     protected $fillable = [
         'user_id',
@@ -34,14 +38,17 @@ class TriviaScores extends Model
      * @return bool
      */
     public function updateScore($userId, $score, bool $isWinner=false) : bool {
-        $this->user_id = $userId;
-        $this->total_score += $score;
-        $this->total_games_played += 1;
-        if($isWinner){
-            $this->total_game_wins += 1;
-        }
-        $this->save();
-
+if($userId){
+    $userScore = self::find($userId);
+          $userScore->total_score += $score;
+          $userScore->total_games_played += 1;
+          if ($isWinner) {
+              $userScore->total_game_wins += 1;
+          }
+          $userScore->save();
+      }else{
+          return false;
+      }
         return true;
     }
 
@@ -67,11 +74,11 @@ class TriviaScores extends Model
     public function getTopScores() : string
     {
 
-        $mask = "|%5.5s | %10.10s | %10.10s | %-10.10s | %-10.10s |\n";
+        $mask = "|%5.5s | %10.10s | %10.10s | %-10.10s | %-10.10s | %-5.5s | \n";
 
         $scores = $this->orderBy('total_score', 'desc')->with('player')->limit(10)->get();
         $outputString = "```\n";
-        $outputString .= "Top 10 Scores\n";
+        $outputString .= "Top 10 Scores-------------------------------------------------------\n";
         $outputString .= sprintf($mask, '#', 'Name', 'Score', 'Wins', 'Games', 'Win %');
 
         $i = 0;
@@ -80,14 +87,14 @@ class TriviaScores extends Model
             $playerRank = $i;
             $playerName = $score->player->name ?? 'Unknown';
             $playerScore = $score->total_score ?? 0;
-            $playerWins = $score->player->total_game_wins ?? 0;
+            $playerWins = $score->total_game_wins ?? 0;
             $playerGames = $score->total_games_played ?? 0;
             if ($playerGames && $playerWins) {
-                $playerWinRate = round(($playerWins / $playerGames) * 100, 2) . '%';
+                $playerWinRate = round(($playerWins / $playerGames) * 100, 1) . '%';
             } else {
                 $playerWinRate = '0%';
             }
-            $outputString .= sprintf($mask, $playerRank, $playerName, $playerScore, $playerWins, $playerGames, $playerWinRate) . "\n";
+            $outputString .= sprintf($mask, $playerRank, $playerName, $playerScore, $playerWins, $playerGames, $playerWinRate);
         }
         $outputString = $outputString . "\n```";
         return $outputString;
