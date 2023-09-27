@@ -55,7 +55,7 @@ class Playlist extends Model
                         $id = $personModel->id;
                         $avatar = $personModel->avatar ?? static::getUserAvatarUrl($discord, $personModel);
                     }else{
-                        $person = 'THANKS DISCORD';
+                        $person = 'THAN S DISCORD';
                         $id = null;
                         $avatar = null;
                     }
@@ -181,6 +181,7 @@ class Playlist extends Model
                 return self::playlistSongPosts($discord, $userData);
         }
 
+
     }
 
     /**
@@ -198,16 +199,19 @@ class Playlist extends Model
             || stripos($url, 'youtube-nocookie.com')
             || stripos($url, 'youtube.googleapis.com')
         ) {
+
+
             $track = Playlist::find($id);
             $track->source = 'Youtube';
             $track->save();
             return 'Youtube';
         }
 
-        elseif (stripos($url, 'spotify'
+        elseif (stripos($url, 'spotify')
             || stripos($url, 'open.spotify.com')
             || stripos($url, 'spoti.fi')
-            || stripos($url, 'spotify.app.goo.gl'))) {
+            || stripos($url, 'spotify.app.goo.gl')
+            || stripos($url, 'spotify.link')){
             $track = Playlist::find($id);
             $track->source = 'Spotify';
             $track->save();
@@ -256,9 +260,6 @@ class Playlist extends Model
           //counter for numbered list
           $i = 0;
 
-                    $embedArray = [
-                        'embeds'=>[],
-                    ];
 
                 count($output) > 0 ? $embedArray['hasItems'] = true : $embedArray['hasItems'] = false;
 

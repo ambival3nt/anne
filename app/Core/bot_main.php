@@ -69,6 +69,7 @@ class bot_main
                    $this->isMusicLink($message);
                }
 
+               // trivia module listener
                $triviaGame = TriviaGame::first() ?? null;
                 if($triviaGame && $triviaGame->count() > 0){
                    $triviaCore = new TriviaCore();
@@ -83,6 +84,7 @@ class bot_main
                    }
                 }
 
+                //actual bot listener
                 $reply = null;
                 $mention = null;
                 //check for mention
@@ -171,6 +173,10 @@ class bot_main
                 || stripos($message->content, 'soundcloud.com') !== false
                 || stripos($message->content, 'spotify.com') !== false
                 || stripos($message->content, 'open.spotify.com') !== false
+                || stripos($message->content, 'spotify.link') !== false
+                || stripos($message->content, 'spotify.app.goo.gl') !== false
+                || stripos($message->content, 'soundcloud.app.goo.gl') !== false
+                || stripos($message->content, 'soundcloud.app.link') !== false
             ) {
                 Log::channel('db')->debug('isMusicLink - ' . $message->content);
                 Playlist::grabMusicLinkUrl($message);

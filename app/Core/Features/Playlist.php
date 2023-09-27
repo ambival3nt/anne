@@ -30,8 +30,9 @@ class Playlist
 
                 //turns out you shouldn't try to take the output from a 3rd party to populate your 4th party output. Huh.
                 if (stripos($url, 'spotify')
+                || (stripos($url, 'spotify.link')
                 || stripos($url, 'open.spotify.com')
-                || stripos($url, 'spotify.app.goo.gl')
+                || stripos($url, 'spotify.app.goo.gl'))
                 ){
                     $playlist = self::parseSpotifyData($message, $url);
                 }
@@ -41,6 +42,7 @@ class Playlist
                 if (stripos($url, 'youtube')
                     || stripos($url, 'youtu.be')
                     || stripos($url, 'youtube.app.goo.gl')) {
+
                     self::parseYoutubeData($message, $url);
                 }
 
@@ -102,11 +104,16 @@ class Playlist
     protected static function parseYoutubeData(Message $message, string $url): \App\Models\Playlist
     {
 
+        $songId = null;
 
       $youtube = new VideoQuery();
-if(str_contains($url, 'youtube.com')) {
-    $songId = substr($url, strrpos($url, '/watch?v=') + 9, 11);
-}elseif(str_contains($url, 'youtu.be')) {
+        if (stripos($url, '?feature=shared')) {
+            $offset = strrpos($url, '/') + 1;
+            $length = strrpos($url, '?feature=shared') - $offset;
+            $songId = substr($url, $offset, $length);
+        } elseif (str_contains($url, 'youtube.com') && !$songId) {
+            $songId = substr($url, strrpos($url, '/watch?v=') + 9, 11);
+        } elseif (str_contains($url, 'youtu.be') && !$songId) {
     $songId = substr($url, strrpos($url, '/') + 1);
 }
 
