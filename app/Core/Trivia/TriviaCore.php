@@ -181,12 +181,15 @@ class TriviaCore
             $question = $questionBlob[$triviaGame->question_key]->question->text;
             $lowerQuestion = strtolower(trim(($question)));
 
+            Log::debug($lowerQuestion);
+
             if (str_contains($lowerQuestion, "which of") || str_contains($lowerQuestion, "which one of")
                 || str_contains($lowerQuestion, "which of the following")
                 || str_contains($lowerQuestion, "which one of the following")
                 || str_contains($lowerQuestion, "which of these")
                 || str_contains($lowerQuestion, "which one of these")
-                || str_contains($lowerQuestion, "which")) {
+                || str_starts_with($lowerQuestion, "which")
+                || str_starts_with($lowerQuestion, "Which")) {
                 $newQA = $this->convertMultipleChoice($questionBlob[$triviaGame->question_key]->question->text,
                     $questionBlob[$triviaGame->question_key]->correctAnswer,
                     $questionBlob[$triviaGame->question_key]->incorrectAnswers

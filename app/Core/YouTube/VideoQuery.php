@@ -34,7 +34,7 @@ class VideoQuery
         return $output;
     }
 
-    public function search(String $queryParam){
+    public function search($queryParam){
         $res = Http::get('https://www.googleapis.com/youtube/v3/search',
 
             [

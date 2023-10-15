@@ -32,6 +32,10 @@ Route::get('/history', MessageHistory::class)
     ->middleware(['auth', 'verified'])
     ->name('history');
 
+Route::get('/prompt', \App\Http\Livewire\PromptInterface::class)
+    ->middleware(['auth', 'verified'])
+    ->name('prompt');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
