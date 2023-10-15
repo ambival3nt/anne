@@ -24,6 +24,9 @@
                     <x-nav-link :href="route('history')">
                         {{ __('show me') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('prompt')">
+                        {{ __('prompt') }}
+                    </x-nav-link>
                 </div>
             </div>
 

@@ -1,4 +1,5 @@
     {{-- <div class="max-w-screen-xl mx-auto px-5 bg-white min-h-screen"> --}}
+   <div>
     <div class="px-4 py-6 place-self-start blurb">Of course I remember!</div>
     <div>
     @foreach ($messages as $message)
@@ -59,4 +60,5 @@
 
 
     @endforeach
-    {{--</div>--}}
+    </div>
+    </div>

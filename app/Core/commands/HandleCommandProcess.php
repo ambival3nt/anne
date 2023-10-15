@@ -4,6 +4,7 @@ namespace App\Core\commands;
 
 
 use App\Core\Features\Lichess;
+use App\Core\Google\Search;
 use App\Core\OpenAI\OpenAICore;
 use App\Core\OpenAI\Prompts\analyzeUserInput;
 use App\Core\Spotify\GetAPIToken;
@@ -21,6 +22,7 @@ use Carbon\Carbon;
 use Discord\Builders\MessageBuilder;
 use Discord\Parts\Embed\Embed;
 use Illuminate\Support\Facades\Log;
+use OpenAI;
 use phpw2v\Word2Vec;
 
 class HandleCommandProcess
@@ -52,6 +54,8 @@ class HandleCommandProcess
 
     public static function runCommandOnContent($command, $content, $message, $owner, $commandArray, $discord)
     {
+        $client=OpenAI::client(getenv('OPENAI_API_KEY'));
+
         Log::debug("Command: $command\nContent: $content\nMessage: $message\nOwner: $owner");
 
         $commandArg = "";
@@ -77,7 +81,7 @@ Log::channel('db')->debug("Arg: $commandArg");
 
             case 'test':
                 $vectorReturn = new VectorQueryReturn(new OpenAICore());
-                return $vectorReturn->vectorQueryReturnTest($message);
+                return $vectorReturn->vectorQueryReturnTest($message, $client);
 
 
         // Emotional analysis test route
@@ -236,17 +240,8 @@ Log::channel('db')->debug("Arg: $commandArg");
             break;
 
             case 'fart':
-                $details = [
-                    'winner'=> 'so and so',
-                    'question' => 'what is a butt?',
-                    'answer' => 'thing that farts',
-                    'score' => 4,
-                    'avatar' => 'https://cdn.discordapp.com/avatars/249180145481416704/327960385dd4e11680bb5bfc16d3da76.webp?size=1024'
-                ];
-
-                $fart = new MessageBuilder();
-                $fartEmbed = TriviaCore::buildCorrectEmbed($discord, $details);
-                $fart->addEmbed($fartEmbed);
+               $fart = new Search();
+               $fart = $fart->getSearchResults($commandArg);
 
 return $message->channel->sendMessage($fart);
                 break;

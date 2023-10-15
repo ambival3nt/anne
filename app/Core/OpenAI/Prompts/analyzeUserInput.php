@@ -3,7 +3,7 @@
 namespace App\Core\OpenAI\Prompts;
 
 use Illuminate\Support\Facades\Log;
-use OpenAI\Laravel\Facades\OpenAI;
+use OpenAI;
 
 class analyzeUserInput
 {
@@ -25,7 +25,8 @@ class analyzeUserInput
         "
         ;
 
-        $result = OpenAI::chat()->create([
+        $client=OpenAI::client(getenv('OPENAI_API_KEY'));
+        $result = $client->chat()->create([
                 'model' => 'gpt-3.5-turbo',
 
                 'messages'=> [
@@ -52,7 +53,7 @@ class analyzeUserInput
 
     }
 
-    public function formatted(string $input, string $user)
+    public function formatted(string $input, string $user, $client)
     {
 
         $prompt = "You are a message analyst. You will be given a message and asked to analyze it, rate it according \n
@@ -94,7 +95,7 @@ class analyzeUserInput
         Your output:\n\n
         anne-brain-output-mk.1-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         ";
-        $result = OpenAI::completions()->create(['model' => 'text-curie-001',
+        $result = $client->completions()->create(['model' => 'text-curie-001',
                 'prompt' => $prompt,
 //                        'top_p' => .25,
                 'temperature' => 1,
@@ -173,7 +174,7 @@ public function modelCommands($input, $user){
 
         return $prompt;
 }
-    public function basic(string $input, string $user){
+    public function basic(string $input, string $user, $client=null){
 
       $prompt = "
         You are an emotion and sentiment analyzer. You will be given a message and asked to analyze it, and rate the intensity of a given list of emotions.\n
@@ -213,7 +214,7 @@ public function modelCommands($input, $user){
         Response:\n
         ";
 
-      $result = OpenAI::completions()->create(['model' => 'text-curie-001',
+      $result = $client->completions()->create(['model' => 'text-curie-001',
                 'prompt' => $prompt,
 //                        'top_p' => .25,
                 'temperature' => 1,

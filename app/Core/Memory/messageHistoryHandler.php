@@ -14,6 +14,7 @@ class messageHistoryHandler
     public static function addMostRecentMessage($prompt, $person, $personNameShown, $message, $userAliasList)
     {
 
+        $aliasListString = "";
         try {
 
             // get alias list
