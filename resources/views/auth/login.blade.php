@@ -42,8 +42,8 @@
 
             <!-- Remember Me -->
             <div class="block mt-4">
-                <label for="remember_me" class="inline-flex items-center">
-                    <input id="remember_me" type="checkbox" class="rounded bg-transparent border-ltblue/50 shadow-sm" name="remember">
+                <label for="remember_me" class="inline-flex items-center text-ltblue hover:text-ltblue-55">
+                    <input id="remember_me" type="checkbox" class="rounded bg-ltblack border-ltblue/50 shadow-sm outline-none focus:outline-none focus:ring-1 focus:ring-ltblue focus:ring-offset-1 focus:ring-offset-midnight" name="remember">
                     <span class="ml-2 text-sm hover:text-ltblue-55">{{ __('Remember me') }}</span>
                 </label>
             </div>
@@ -52,13 +52,8 @@
             <div class="flex items-center justify-end mt-4">
                 @if (Route::has('password.request'))
                     <a class="
-                        underline 
-                        text-sm 
-                        text-ltblue/50 
-                        hover:text-ltblue-55/70 
-                        rounded-sm
-                        focus:text-ltblue-55 
-                        focus:ring-ltblue-55"
+                        underline text-sm text-ltblue/50 hover:text-ltblue-55/70 rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ltblue focus-visible:ring-offset-2 focus-visible:ring-offset-midnight focus:text-ltblue-55 focus:ring-2 focus:ring-ltblue-55 transition-all ease-in-out duration-200"
+
                     href="{{ route('password.request') }}">
                         {{ __('Forgot your password?') }}
                     </a>

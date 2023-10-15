@@ -21,9 +21,9 @@
 
                 <div class="modal">
                     <h1>Disdain v.0.1.1</h1>
-                    <div><livewire:login-modal></livewire:login-modal></div>
+                    <div class="login"><livewire:login-modal></livewire:login-modal></div>
                     
-                    <div><a href="{{ route('register') }}">Register</a></div>
+                    <div><a href="{{ route('register') }}" class="register">Register</a></div>
                 </div>
 
             </div>

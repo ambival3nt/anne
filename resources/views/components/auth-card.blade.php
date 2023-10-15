@@ -4,17 +4,7 @@
     </div>
 
     {{-- the card itself --}}
-    <div class="
-    w-full 
-    sm:max-w-md 
-    mt-6 px-6 py-4 
-    bg-black/40 
-    shadow-md 
-    border 
-    border-ltblue-55/10 
-    overflow-hidden 
-    sm:rounded-md
-    ">
+    <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-black/40 shadow-lg shadow-black/50 border border-transparent overflow-hidden sm:rounded-md">
         {{ $slot }}
     </div>
 </div>
