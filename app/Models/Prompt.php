@@ -45,7 +45,7 @@ class Prompt extends Model
     public function getPromptById($promptIndex, $modelId){
 
         $promptOutput = '';
-        $promptType = $this->prompt_enum[$promptIndex];
+        $promptType = $this->prompt_enum[$promptIndex-1];
         $prompt = $this->where('prompt_type', $promptType)
             ->where('model_id', $modelId)
             ->first() ?? [];
