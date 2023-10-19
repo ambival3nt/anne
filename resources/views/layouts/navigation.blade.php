@@ -1,7 +1,7 @@
 <nav x-data="{ open: false }" class="">
     <!-- Primary Navigation Menu -->
     <div class="mx-auto">
-        <div class="flex h-16 shadow-lg shadow-black/50">
+        <div class="flex h-16 shadow-lg shadow-black/50 justify-between">
             <div class="flex">
                 <!-- Logo -->
                 <div class="vignette">
@@ -31,7 +31,7 @@
             </div>
 
             <!-- Settings Dropdown -->
-           <div class="hidden sm:flex flex-row-reverse sm:items-center sm:ml-6 fill-current">
+           <div class="mr-2 hidden sm:flex flex-row-reverse sm:items-center sm:ml-6 fill-current">
                <x-dropdown width="48">
                    <x-slot name="trigger">
                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-ltblue/50 bg-black/30 hover:text-ltblue hover:bg-black/50 focus:outline-none transition ease-in-out duration-150">
@@ -65,7 +65,7 @@
            </div>
 
             <!-- Hamburger -->
-            <div class="-mr-2 flex items-center sm:hidden">
+            <div class="mr-2 flex items-center sm:hidden">
                 <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -85,10 +85,10 @@
         </div>
 
         <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-amber-400">
+        <div class="pt-4 pb-1 border-t border-ltblue">
             <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
+                <div class="font-medium text-base text-slate-600">{{ Auth::user()->name }}</div>
+                <div class="font-medium text-sm text-slate-400">{{ Auth::user()->email }}</div>
             </div>
 
             <div class="mt-3 space-y-1">
