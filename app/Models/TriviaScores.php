@@ -79,7 +79,7 @@ if($userId){
         $scores = $this->orderBy('total_score', 'desc')->with('player')->limit(10)->get();
         $outputString = "```\n";
         $outputString .= "Top 10 Scores-------------------------------------------------------\n";
-        $outputString .= sprintf($mask, '#', 'Name', 'Score', 'Wins', 'Games', 'Win %');
+        $outputString .= sprintf($mask, '#', 'Name', 'Score', 'Wins', 'Games', ' % ');
 
         $i = 0;
         foreach ($scores as $score) {
