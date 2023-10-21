@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+/* :root {
   --step--3: clamp(0.43rem, calc(0.39rem + 0.16vw), 0.51rem);
   --step--2: clamp(0.52rem, calc(0.45rem + 0.24vw), 0.64rem);
   --step--1: clamp(0.63rem, calc(0.52rem + 0.35vw), 0.80rem);
@@ -33,4 +33,4 @@
   --space-2xl-3xl: clamp(3.00rem, calc(1.20rem + 6.00vw), 6.00rem);
 
   --space-s-l: clamp(0.75rem, calc(0.00rem + 2.50vw), 2.00rem);
-}
+} */

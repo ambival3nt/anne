@@ -1,7 +1,7 @@
-<nav x-data="{ open: false }" class="">
+<nav x-data="{ open: false }" class="w-full">
     <!-- Primary Navigation Menu -->
     <div class="mx-auto">
-        <div class="flex h-16 shadow-lg shadow-black/50 justify-between">
+        <div class="flex h-16 bg-midnight shadow-lg shadow-black/50 justify-between">
             <div class="flex">
                 <!-- Logo -->
                 <div class="vignette">
@@ -26,6 +26,9 @@
                     </x-nav-link>
                     <x-nav-link :href="route('prompt')">
                         {{ __('prompt') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('playlistUI')">
+                        {{ __('playlistUI') }}
                     </x-nav-link>
                 </div>
             </div>

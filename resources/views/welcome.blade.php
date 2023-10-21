@@ -28,7 +28,7 @@
 
             </div>
 
-            <p>Disdain is an open source and shitty Discord bot written in PHP v{{ PHP_VERSION }} by ficetyeis</p>
+            <p>Disdain is an open source and shitty Discord bot written in PHP v{{ PHP_VERSION }} by ficetyeis, styled poorly by gils.</p>
         </div>
 
         @livewireScripts
