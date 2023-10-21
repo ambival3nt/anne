@@ -41,12 +41,12 @@
     </div>
     {{-- right side--}}
     {{-- output--}}
-    <div class="flex flex-col flex-grow pl-[--space-l-xl] justify-evenly">
+    <div class="flex flex-col flex-grow pl-[--space-l-xl]">
 
-        <textarea class="textarea textarea-primary resize-none font-mono leading-none text-xs h-[80%] place-self-center w-full bg-ltblack/50" spellcheck="false" placeholder="Output Goes Here"></textarea>
+        <textarea class="textarea textarea-primary rounded-b-sm resize-none font-mono border-b-purple-950 leading-none text-xs h-[80%] place-self-center w-full bg-transparent" spellcheck="false" placeholder="Output Goes Here"></textarea>
 
     {{-- input--}}
-        <textarea class="textarea textarea-primary resize-none font-mono leading-none text-xs  place-self-center w-full bg-ltblack/50" spellcheck="false" placeholder="Say something..."></textarea>
+        <textarea class="textarea textarea-primary rounded-t-sm resize-none scroll-none border-t-purple font-mono textarea-sm  leading-none text-xs min-h-0.5 max-h-1 place-self-center w-full bg-transparent" spellcheck="false" placeholder="Say something..."></textarea>
 
     </div>
 </div>
