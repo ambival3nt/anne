@@ -27,6 +27,7 @@ class TriviaCore
 {
 
     public static TimerInterface $staticTimer;
+    public bool $blockAnswers = false;
 
 
     public function __construct()
@@ -48,10 +49,13 @@ class TriviaCore
             || strtolower($message->content) == strtolower($triviaGame->answer)
             || strtolower($message->content) == strtolower($removedFirstWordAnswer)
         ) {
-            $isCorrect = true;
+            if(!$this->blockAnswers) {
+                $isCorrect = true;
+            }
         }
 
         if ($isCorrect) {
+            $this->blockAnswers = true;
             $loop = Loop::get();
             $loop->cancelTimer(self::$staticTimer);
 
@@ -101,6 +105,7 @@ class TriviaCore
                 } else {
                     //start the next round
                     delay(5.0);
+                    $this->blockAnswers = false;
                     return $this->startNewQuestion($discord, $triviaGame, false);
                 }
             }catch(\Exception $e){
@@ -158,7 +163,7 @@ class TriviaCore
 
         if ($timeoutResponse) {
             $discord->getChannel($triviaGame->channel)->sendMessage("Time's up. It was: " . $triviaGame->answer);
-
+            $this->blockAnswers=true;
             //if all 50 questions have been burned, get 50 new ones
             if ($triviaGame->question_key == 49) {
                 $triviaGame->getNewQuestionBlob();
@@ -215,7 +220,7 @@ class TriviaCore
             $questionOutput = $output .
                 "Round " . $triviaGame->round . "\nQuestion: " . $questionDisplay;
 
-
+          $this->blockAnswers = false;
             $discord->getChannel($triviaGame->channel)->sendMessage($questionOutput);
 
         } else {
@@ -242,12 +247,14 @@ class TriviaCore
 
             $questionOutput = $output .
                 "Round " . $triviaGame->round . "\nQuestion: " . $triviaGame->question;
+            $this->blockAnswers = false;
         }
 
         // Start a timer for 30 seconds
 
 
         self::$staticTimer = $loop->addTimer(30, function () use ($discord, $triviaGame) {
+            $this->blockAnswers = true;
             Loop::get()->cancelTimer(TriviaCore::$staticTimer);
             delay(2.0);
             $this->startNewQuestion($discord, $triviaGame, true);

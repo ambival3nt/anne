@@ -4,7 +4,9 @@ namespace App\Http\Livewire;
 
 use App\Models\LLM;
 use App\Models\Prompt;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use OpenAI;
 
 
 //Ok... This is probably terribly executed but its my first livewire component for reals so... deal with it. lol.
@@ -16,7 +18,12 @@ class PromptInterface extends Component
     public $output = "";
     public $activeModel = 2;
     public $activePromptSection = 4;
+    public $showModal = false;
+    public $modalData = '';
 
+    //chat interface
+    public $outputData = "Output Data.";
+    public $userInput = "Press enter to send.";
 
     //This function renders the view you give it whenever the route for this component is called. See web.php for the route declaration, as an example.
     public function render()
@@ -86,4 +93,127 @@ class PromptInterface extends Component
         $this->activePromptSection = $llm->active_prompt_id; //active_prompt_id is a column in the llms table.
         $this->activePrompt= $prompt->find($this->activePromptSection)->prompt; //prompt is a column in the prompts table.
     }
+
+    public function toggleModal($modalName){
+        switch($modalName){
+            case 'file':
+                $this->showModal = true;
+                $modalData = 'Anne';
+                break;
+            case 'anne':
+                $this->showModal = true;
+                $modalData = 'File';
+                break;
+            default:
+                $this->showModal=false;
+        }
+    }
+
+    public function chatInterface(){
+
+    }
+
+    public function clearInput(){
+        $this->userInput = '';
+    }
+
+    public function chatInput(){
+
+        $user = Auth::user();
+
+        $input = $user->name . ": " . $this->userInput;
+
+        $this->outputData = $this->outputData . "\n\n$user->name:\n\t" . $this->userInput;
+
+        $this->userInput = '';
+
+
+        switch($this->activeModel){
+            case 1: // gpt 3.5
+                $data = $this->getGpt3ChatResponse($input);
+                break;
+            case 2: // 3.5 instruct
+                $data = $this->getInstructResponse($input);
+                break;
+            case 3: // gpt 4
+                $data = $this->getGpt4ChatResponse($input);
+                break;
+                //
+            default:
+                return [
+                    'success' => false,
+                    'message' => "No model is selected",
+                    ];
+        }
+
+        $this->userInput = '';
+
+        //then what
+
+    }
+
+    public function getGpt3ChatResponse($userMessage){
+
+        $client=OpenAI::client(getenv('OPENAI_API_KEY'));
+
+        //get the recent history
+        $messageHistory = $this->buildMessageHistoryForGpt();
+
+        //add the current message to the message history array
+        $messageHistory[] = [
+            'role' => 'user',
+            'content' => $userMessage,
+        ];
+
+        $stream = $client->chat()->createStreamed([
+            'model' => 'gpt-3.5-turbo',
+            'messages' => $messageHistory,
+        ]);
+
+        $this->outputData = $this->outputData . "\n\nAnne:\n\t";
+
+
+        foreach($stream as $response){
+            $response->choices[0]->toArray();
+            $this->outputData = $this->outputData . $response->choices[0]->delta->content;
+        }
+// 1. iteration => ['index' => 0, 'delta' => ['role' => 'assistant'], 'finish_reason' => null]
+// 2. iteration => ['index' => 0, 'delta' => ['content' => 'Hello'], 'finish_reason' => null]
+// 3. iteration => ['index' => 0, 'delta' => ['content' => '!'], 'finish_reason' => null]
+// ...
+    }
+
+    public function getInstructResponse(){
+
+    }
+
+    public function getGpt4ChatResponse(){
+
+    }
+
+    //builds the message history for the gpt-3.5 model
+    private function buildMessageHistoryForGpt()
+    {
+        $prompt = new Prompt();
+
+        //json is saved in the table to construct an array of messages
+        $prompt = $prompt->where('model_id', $this->activeModel)->where('prompt_type', 'user')->first();
+        $prompt =array_reverse(json_decode($prompt->prompt));
+
+        $historyArray = [];
+
+        foreach($prompt as $message){
+            $historyArray[] = [
+                'role' => 'user',
+                'content' => $message->user,
+            ];
+            $historyArray[] = [
+                'role' => 'assistant',
+                'content' => $message->assistant,
+            ];
+        }
+
+        return $historyArray;
+    }
+
 }
