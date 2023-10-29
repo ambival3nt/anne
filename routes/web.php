@@ -37,7 +37,7 @@ Route::get('/prompt', \App\Http\Livewire\PromptInterface::class)
     ->middleware(['auth', 'verified'])
     ->name('prompt');
 
-Route::get('/playlistUI', \App\Http\Livewire\PlaylistUI::class)
+Route::get('/playlistUI', PlaylistUI::class)
     ->middleware(['auth', 'verified'])
     ->name('playlistUI');
 

@@ -20,7 +20,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
     </head>
-    <body class="font-sans antialiased bg-midnight-900 min-h-[100dvh] flex flex-col">
+    <body class="font-sans antialiased min-h-[100dvh] flex flex-col text-ltblue-txt">
 
         <div class="h-full">
             @include('layouts.navigation')

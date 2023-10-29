@@ -6,9 +6,9 @@
 
         <div class="flex flex-col">
             <div class="join align-top">
-                <input class="join-item btn   btn-sm btn-outline btn-primary " wire:change="changeModel" wire:model="activeModel" value="2" type="radio" name="options" aria-label="3.5 Instruct" />
-                <input class="join-item btn   btn-sm btn-outline btn-primary" wire:change="changeModel" wire:model="activeModel" value="1" type="radio" name="options" aria-label="3.5 Chat" />
-                <input class="join-item btn   btn-sm btn-outline btn-primary" wire:change="changeModel" wire:model="activeModel" value="3" type="radio" name="options" aria-label="GPT4" />
+                <input class="join-item btn  btn-sm btn-outline btn-primary " wire:change="changeModel" wire:model="activeModel" value="2" type="radio" name="options" aria-label="3.5 Instruct" />
+                <input class="join-item btn  btn-sm btn-outline btn-primary" wire:change="changeModel" wire:model="activeModel" value="1" type="radio" name="options" aria-label="3.5 Chat" />
+                <input class="join-item btn  btn-sm btn-outline btn-primary" wire:change="changeModel" wire:model="activeModel" value="3" type="radio" name="options" aria-label="GPT4" />
             </div>
         </div>
 
@@ -28,8 +28,6 @@
             @endif
             <div class="mt-fluid-s h-full ">
                 <textarea class="textarea textarea-primary resize-none font-mono text-xs leading-[1.1] h-full w-full bg-ltblack/50" spellcheck="false" wire:model="activePrompt"></textarea>
-
-
 
             </div>
             <div class="join mt-fluid-m">

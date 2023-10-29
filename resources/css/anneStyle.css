@@ -6,7 +6,31 @@
   --dark-bg: linear-gradient(hsl(228, 70%, 6%) 75%, hsl(0, 0%, 0%) 100%);
   --midnight: #02040D;
   --ltblue: hsl(210, 35%, 60%);
+  --ltblue-55: #6199d1;
   --ltblack: hsl(0, 0%, 3%);
+
+  --midnight-950: #02040D;
+  --midnight-900: #040816;
+  --midnight-800: #060C1E;
+  --midnight-700: #081026;
+  --midnight-600: #0A152F;
+  --midnight-500: #0C1B37;
+  --midnight-400: #0E213F;
+  --midnight-300: #102747;
+  --midnight-200: #122D4E;
+  --midnight-100: #153456;
+
+  --dusk: #080a17;
+  --dusk-950: #080A17;
+  --dusk-900: #0B0F1E;
+  --dusk-800: #0F1324;
+  --dusk-700: #13182A;
+  --dusk-600: #181E30;
+  --dusk-500: #1D2335;
+  --dusk-400: #22293A;
+  --dusk-300: #282F3E;
+  --dusk-200: #2E3442;
+  --dusk-100: #353A46;
   
 /* @link https://utopia.fyi/type/calculator?c=640,16,1.125,1280,20,1.2,5,2,&s=0.75|0.5|0.25,1.5|2|3|4|6,s-l&g=s,l,xl,12 */
   --step--3: clamp(0.43rem, calc(0.39rem + 0.16vw), 0.51rem);
@@ -215,9 +239,7 @@ body {
   word-break: break-word;
 } */
 
-.history {
-  align-self: flex-start;
-}
+
 
 .welcome {
   display: flex;
@@ -226,7 +248,7 @@ body {
   align-items: center;
   justify-content: center;
   place-self: center;
-  /* max-width: 90%; */
+  max-width: 90%;
   margin: auto;
   font-size: var(--step-1);
   color: var(--ltblue);
@@ -242,7 +264,7 @@ body {
 }
 
 .modal {
-  /* justify-content: center; */
+  justify-content: center;
 }
 
 .modal>h1 {
@@ -295,7 +317,7 @@ form>div:last-of-type {
 
 
 .forgot {
-  font-size: var(--step--3) !important;
+  font-size: var(--step--2) !important;
   color: hsl(210, 35%, 60%, 0.5) !important;
   text-decoration: underline;
   text-decoration-style: dotted;
@@ -361,8 +383,10 @@ input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
   -webkit-background-clip: text;
   -webkit-text-fill-color: hsl(210, 35%, 60%);
-  box-shadow: inset 0 0 20px 20px hsl(0, 0%, 3%);
-}
+  background-color: #02040D;
+  box-shadow: inset 0 0 20px 20px #02040D;
+} 
+
 
 .checkbox-wrapper input[type="checkbox"] {
   display: none;
@@ -431,8 +455,7 @@ input:-webkit-autofill:active {
   }
 }
 
-.vignette {
-  /* margin-top: 6px; */
+/* .vignette {
   align-self: baseline;
   background-color: hsl(210, 65%, 60%, 0.8);
   background-image: linear-gradient(265deg,
@@ -449,4 +472,4 @@ input:-webkit-autofill:active {
         hsl(222deg 66% 25%) 99%,
         hsl(226deg 68% 16%) 100%,
         hsl(228deg 71% 7%) 100%);
-}
+} */

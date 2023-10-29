@@ -1,11 +1,11 @@
 <nav x-data="{ open: false }" class="w-full">
     <!-- Primary Navigation Menu -->
     <div class="mx-auto">
-        <div class="flex h-16 bg-midnight shadow-lg shadow-black/50 justify-between">
+        <div class="flex h-16 bg-midnight border-b border-b-midnight-500 justify-between">
             <div class="flex">
                 <!-- Logo -->
-                <div class="vignette">
-                    <a href="{{ route('dashboard') }}" class="flex w-[62px]">
+                <div class="vignette flex w-[58px]">
+                    <a href="{{ route('dashboard') }}" class="">
                         <x-application-logo />
                     </a>
                 </div>
@@ -21,14 +21,14 @@
                     <x-nav-link :href="route('history')" :active="request()->routeIs('history')">
                         {{ __('remember') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('history')">
+                    {{-- <x-nav-link :href="route('history')">
                         {{ __('show me') }}
-                    </x-nav-link>
+                    </x-nav-link> --}}
                     <x-nav-link :href="route('prompt')">
                         {{ __('prompt') }}
                     </x-nav-link>
                     <x-nav-link :href="route('playlistUI')">
-                        {{ __('playlistUI') }}
+                        {{ __('playlist') }}
                     </x-nav-link>
                 </div>
             </div>
@@ -37,7 +37,7 @@
            <div class="mr-2 hidden sm:flex flex-row-reverse sm:items-center sm:ml-6 fill-current">
                <x-dropdown width="48">
                    <x-slot name="trigger">
-                       <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-ltblue/50 bg-black/30 hover:text-ltblue hover:bg-black/50 focus:outline-none transition ease-in-out duration-150">
+                       <button class="inline-flex items-center px-3 py-2 border border-midnight-500 hover:border-midnight-100 text-sm text-ltblue leading-4 font-medium rounded-md bg-ltblack/50 hover:text-ltblue hover:bg-black/50 focus:outline-none transition ease-in-out duration-150">
                            <div>{{ Auth::user()->name }}</div>
 
                            <div class="ml-1">
@@ -69,7 +69,7 @@
 
             <!-- Hamburger -->
             <div class="mr-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
+                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md border border-midnight-500 text-ltblue-55 hover:text-ltblue-65 hover:bg-black focus:outline-none focus:bg-black focus:text-ltblue-65 transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                         <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -85,7 +85,25 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('botlogs')" :active="request()->routeIs('botlogs')">
+                {{ __('furnace') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('history')" :active="request()->routeIs('history')">
+                 {{ __('remember') }}
+            </x-responsive-nav-link>
+            {{-- <x-responsive-nav-link :href="route('history')">
+                 {{ __('show me') }}
+            </x-responsive-nav-link> --}}
+            <x-responsive-nav-link :href="route('prompt')">
+              {{ __('prompt') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('playlistUI')">
+              {{ __('playlist') }}
+            </x-responsive-nav-link>
+
+
         </div>
+
 
         <!-- Responsive Settings Options -->
         <div class="pt-4 pb-1 border-t border-ltblue">
