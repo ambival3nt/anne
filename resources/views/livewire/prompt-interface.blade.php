@@ -33,8 +33,8 @@
 
             </div>
             <div class="join mt-[--space-m]">
-                <input class="join-item btn btn-sm  btn-outline btn-warning" type="radio" name="options" aria-label="Send to Anne" />
-                <input class="join-item btn btn-sm  btn-outline btn-accent" type="radio" name="options" aria-label="Export" />
+                <input class="join-item btn btn-sm  btn-outline btn-warning" wire:click="toggleModal('anne')" type="radio" name="options" aria-label="Send to Anne" />
+                <input class="join-item btn btn-sm  btn-outline btn-accent" wire:click="toggleModal('file')" type="radio" name="options" aria-label="File" />
             </div>
 
         </div>
@@ -43,10 +43,24 @@
     {{-- output--}}
     <div class="flex flex-col flex-grow pl-[--space-l-xl]">
 
-        <textarea class="textarea textarea-primary rounded-b-sm resize-none font-mono border-b-purple-950 leading-none text-xs h-[80%] place-self-center w-full bg-transparent" spellcheck="false" placeholder="Output Goes Here"></textarea>
+        <textarea class="textarea textarea-primary rounded-b-sm resize-none font-mono border-b-purple-950 leading-none text-xs h-[80%] place-self-center w-full bg-transparent"
+                  wire:model="outputData"
+                  spellcheck="false"></textarea>
 
     {{-- input--}}
-        <textarea class="textarea textarea-primary rounded-t-sm resize-none scroll-none border-t-purple font-mono textarea-sm  leading-none text-xs min-h-0.5 max-h-1 place-self-center w-full bg-transparent" spellcheck="false" placeholder="Say something..."></textarea>
+        <textarea class="textarea textarea-primary rounded-t-sm resize-none scroll-none border-t-purple font-mono textarea-sm  leading-none text-xs min-h-0.5 max-h-1 place-self-center w-full bg-transparent"
+                  wire:click="clearInput"
+                  wire:model="userInput"
+                  wire:keydown.enter="chatInput"
+                  spellcheck="false"
+                  ></textarea>
 
     </div>
+
+
+    {{-- modal--}}
+   @if($showModal)
+    <livewire:awful-modal>{{ $modalData }}</livewire:awful-modal>
+   @endif
+
 </div>
