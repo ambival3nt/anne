@@ -1,12 +1,59 @@
-    {{-- <div class="max-w-screen-xl mx-auto px-5 bg-white min-h-screen"> --}}
-   <div>
-    <div class="px-4 py-6 place-self-start blurb">Of course I remember!</div>
-    <div>
-    @foreach ($messages as $message)
+    <div class="max-w-screen-xl mx-auto">
+        <div class="">
+            <div class="px-4 py-6 place-self-start blurb">Of course I remember!</div>
+            <div class="max-h-[calc(100vh-128px)] overflow-y-scroll px-fluid-m">
+                @foreach ($messages as $message)
+                {{-- user message --}}
+                <div class="chat chat-start">
+                    <div class="chat-image avatar">
+                        <div class="w-10 rounded-full">
+                            <img src={{ $message->user->avatar }}>
+
+
+
+                        </div>
+                    </div>
+                    <div class="chat-header">
+                        <span class="pr-fluid-xs">{{ $message->user->name }}</span>
+                        <time class="text-xs opacity-50">{{ $message->created_at }}</time>
+
+                    </div>
+                    <div class="chat-bubble">{{ $message->message }}</div>
+
+                    <div class="chat-footer opacity-50">
+
+                    </div>
+                </div>
+
+                {{-- anne message --}}
+                <div class="chat chat-end">
+                    <div class="chat-image avatar">
+                        <div class="w-10 rounded-full bg-ltblue-75">
+                            <img src={{ Vite::asset('resources/img/disdain.svg')}}>
+                        </div>
+                    </div>
+                    <div class="chat-header">
+                        <span class="pr-fluid-xs">anne</span>
+                        <time class="text-xs opacity-50">{{ $message->created_at }}</time>
+
+                    </div>
+                    <div class="chat-bubble">{{ $message->anneReply->message }}</div>
+                    {{-- anne thoughts --}}
+                    <div class="chat-bubble bg-zinc-950 text-white/50">{{ $message->thoughts->summary ?? 'No thoughts.' }}</div>
+
+
+
+                    <div class="chat-footer opacity-50">
+
+                    </div>
+                </div>
+
+
+                <!--
     <div class="history">
         <p>
         <ol>
-            <li class="border-l-2 border-purple-600">
+            <li class="border-l-2 border-ltblue">
                 <div class="md:flex flex-start">
                     {{-- <div class="bg-purple-600 w-10 h-6 flex items-center justify-center rounded-full -ml-3.5"> --}}
                         {{-- <svg aria-hidden="true" focusable="false" data-prefix="fas" class="text-white w-3 h-3" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"> --}}
@@ -15,10 +62,10 @@
                     {{-- </div> --}}
 
                     {{-- user message --}}
-                    <div class="block p-6 rounded-lg shadow-lg bg-ltblack border border-ltblue-75/30 md:max-w-lg-sm:max-w-md ml-6 mb-10 space-y-3">
+                    <div class="block p-6 rounded-lg shadow-lg bg-ltblack border border-midnight-500 xl:max-w-2xl lg:max-w-xl md:max-w-lg-sm:max-w-md ml-6 mb-10 space-y-3">
                         <div class="flex justify-between mb-4">
-                            <a href="#!" class="font-medium text-ltblue-75 hover:text-ltblue-25 focus:text-purple-800 duration-300 transition ease-in-out text-sm"> {{ $message->user->name }} </a>
-                            <a href="#!" class="font-medium text-purple-400/50 hover:text-white focus:text-purple-800 duration-300 transition ease-in-out text-sm"> {{ $message->created_at }}</a>
+                            <a href="#!" class="font-medium text-ltblue-65 hover:text-ltblue-txt focus:text-ltblue-55 duration-300 transition ease-linear text-sm"> {{ $message->user->name }} </a>
+                            <a href="#!" class="pl-4 font-medium text-ltblue-65 hover:text-ltblue-txt focus:text-purple-800 duration-300 transition ease-linear text-sm"> {{ $message->created_at }}</a>
                         </div>
                         <div class="mb-4">
                             <span class="flex justify-between items-center font-medium list-none">
@@ -28,9 +75,10 @@
                     </div>
 
                     {{-- anne message --}}
-                    <div class="block p-6 rounded-lg shadow-lg bg-gray-900 md:max-w-lg sm:max-w-md ml-6 mb-10 space-y-3">
+                    <div class="block p-6 rounded-lg shadow-lg bg-midnight border border-midnight-500 xl:max-w-2xl lg:max-w-xl md:max-w-lg sm:max-w-md ml-6 mb-10 space-y-3">
+
                         <div class="flex justify-between mb-4">
-                            <a href="#!" class="font-medium text-purple-600 hover:text-white focus:text-purple-800 duration-300 transition ease-linear text-sm"> anne</a>
+                            <a href="#!" class="font-medium text-ltblue-75 hover:text-ltblue-txt focus:text-purple-800 duration-300 transition ease-linear text-sm"> anne</a>
                             <a href="#!" class="font-medium text-purple-600 hover:text-white focus:text-purple-800 duration-300 transition ease-linear text-sm"> {{ $message->created_at }}</a>
                         </div>
 
@@ -45,7 +93,7 @@
                                     </svg>
                                 </span>
                             </summary>
-                            <p class="text-pink-300 mt-3 group-open:animate-fadeIn">
+                            <p class="text-indigo-300 mt-3 group-open:animate-fadeIn">
                                 {{ $message->thoughts->summary ?? 'No thoughts.' }}
                             </p>
                         </details>
@@ -56,9 +104,12 @@
         </ol>
 
     </div>
+    -->
 
 
 
-    @endforeach
-    </div>
-    </div>
+
+                @endforeach
+            </div>
+        </div>
+

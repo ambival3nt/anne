@@ -4,9 +4,33 @@
 :root {
   color-scheme: dark;
   --dark-bg: linear-gradient(hsl(228, 70%, 6%) 75%, hsl(0, 0%, 0%) 100%);
-  --midnight: hsl(228, 70%, 6%);
+  --midnight: #02040D;
   --ltblue: hsl(210, 35%, 60%);
+  --ltblue-55: #6199d1;
   --ltblack: hsl(0, 0%, 3%);
+
+  --midnight-950: #02040D;
+  --midnight-900: #040816;
+  --midnight-800: #060C1E;
+  --midnight-700: #081026;
+  --midnight-600: #0A152F;
+  --midnight-500: #0C1B37;
+  --midnight-400: #0E213F;
+  --midnight-300: #102747;
+  --midnight-200: #122D4E;
+  --midnight-100: #153456;
+
+  --dusk: #080a17;
+  --dusk-950: #080A17;
+  --dusk-900: #0B0F1E;
+  --dusk-800: #0F1324;
+  --dusk-700: #13182A;
+  --dusk-600: #181E30;
+  --dusk-500: #1D2335;
+  --dusk-400: #22293A;
+  --dusk-300: #282F3E;
+  --dusk-200: #2E3442;
+  --dusk-100: #353A46;
   
 /* @link https://utopia.fyi/type/calculator?c=640,16,1.125,1280,20,1.2,5,2,&s=0.75|0.5|0.25,1.5|2|3|4|6,s-l&g=s,l,xl,12 */
   --step--3: clamp(0.43rem, calc(0.39rem + 0.16vw), 0.51rem);
@@ -48,7 +72,7 @@
 }
 
 html {
-  font-family: 'Nunito Sans', 'Albert Sans', sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+  font-family: 'Nunito', 'Albert Sans', sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   font-weight: 300;
@@ -59,14 +83,14 @@ h1,h2,h3,h4,h5,h6 {
   font-weight: inherit;
 }
 
-a,
+.welcome a,
 a:visited {
   text-decoration: none;
   color: var(--ltblue);
   cursor: pointer;
 }
 
-a:hover {
+.welcome a:hover {
   color: hsl(210, 65%, 60%);
 }
 
@@ -81,41 +105,41 @@ svg {
 
 body {
   background-color: var(--midnight);
-  background: linear-gradient(hsl(228, 70%, 6%) 65%, hsl(0, 0%, 0%) 100%);
-  min-height: 100dvh;
-  font-size: var(--step-0);
-  color: var(--ltblue);
-  font-family: 'Nunito Sans', 'Albert Sans', Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
+  /* background: linear-gradient(hsl(228, 70%, 6%) 65%, hsl(0, 0%, 0%) 100%); */
+  /* min-height: 100dvh; */
+  /* font-size: var(--step-0); */
+  /* color: var(--ltblue); */
+  /* font-family: 'Nunito Sans', 'Albert Sans', Helvetica, sans-serif; */
+  /* -webkit-font-smoothing: antialiased; */
 
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  /* justify-content: center; */
+  /* align-items: center; */
 }
 
 /* deals with min-h-screen */
-body>div {
+/* body>div {
   height: 100dvh;
   width: 100%;
-}
+} */
 
-header:has(h2) {
+/* header:has(h2) {
   font-size: var(--step-2);
-}
+} */
 
-header>div {
+/* header>div {
   margin-top: var(--space-m);
   margin-left: var(--space-xl-2xl);
   margin-right: var(--space-xl-2xl);
-}
+} */
 
-main {
+/* main {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-}
+} */
 
 .blurb {
   padding: 0 var(--space-s);
@@ -133,9 +157,9 @@ main {
   font-weight: 300;
   line-height: 1.5;
   color: var(--ltblue);
-  padding: var(--space-m-l);
-  margin: var(--space-l);
-  max-height: 75dvh;
+  padding: var(--space-s-m);
+  /* margin: var(--space-l); */
+  /* max-height: 75dvh; */
   overflow-y: auto;
   /* resize: horizontal; */
 }
@@ -153,7 +177,7 @@ main {
   margin: var(--space-l);
 }
 
-.display {
+/* .display {
   ::-webkit-scrollbar {
   width: 10px;
   height: 10px
@@ -173,28 +197,28 @@ main {
   ::-webkit-scrollbar-corner {
     background-color: rgba(0,0,0,0)
   } 
-}
+} */
 
-.furnace {
-  display: grid;
-  grid-template-columns: minmax(12ch, 22ch) minmax(5ch, 10ch) minmax(30ch, 50vw);
-  grid-template-rows: auto;
-  max-height: 100dvh;
-  color: hsl(210, 25%, 60%);
-}
+/* .furnace { */
+  /* display: grid; */
+  /* grid-template-columns: minmax(12ch, 22ch) minmax(5ch, 10ch) minmax(30ch, 50vw); */
+  /* grid-template-rows: auto; */
+  /* max-height: 100dvh; */
+  /* color: hsl(210, 25%, 60%); */
+/* } */
 
-.furnace>div {
+/* .furnace>div {
   padding: var(--space-s);
- }
+ } */
 
 /* table heading row */
-.furnace>div:nth-child(1),
+/* .furnace>div:nth-child(1),
 .furnace>div:nth-child(2),
 .furnace>div:nth-child(3) {
   text-align: left;
   font-size: var(--step-1);
   font-weight: 600;
-}
+} */
 
 /* give every row bottom border */
 /* .furnace>div:nth-child(3n + 1),
@@ -204,20 +228,18 @@ main {
 } */
 
 /* shade every other row */
-.furnace>div:nth-child(6n + 1),
+/* .furnace>div:nth-child(6n + 1),
 .furnace>div:nth-child(6n + 2),
 .furnace>div:nth-child(6n + 3) {
   background: hsla(210, 85%, 5%, 0.7);
-}
+} */
 
 /* keep third column from breaking */
-.furnace>div:nth-child(3n + 3) {
+/* .furnace>div:nth-child(3n + 3) {
   word-break: break-word;
-}
+} */
 
-.history {
-  align-self: flex-start;
-}
+
 
 .welcome {
   display: flex;
@@ -225,9 +247,11 @@ main {
   align-self: center;
   align-items: center;
   justify-content: center;
+  place-self: center;
   max-width: 90%;
   margin: auto;
   font-size: var(--step-1);
+  color: var(--ltblue);
 }
 
 .welcome>div {
@@ -240,7 +264,7 @@ main {
 }
 
 .modal {
-  /* justify-content: center; */
+  justify-content: center;
 }
 
 .modal>h1 {
@@ -278,6 +302,7 @@ form>div:last-of-type {
   background-color: var(--ltblue);
   color: hsl(0, 0%, 0%, 0.7);
   text-transform: uppercase;
+  font-family: 'Nunito', 'Albert Sans', system-ui, sans-serif;
   font-size: var(--step-0);
   font-weight: 600;
   transition: all 0.2s ease-in-out;
@@ -292,7 +317,7 @@ form>div:last-of-type {
 
 
 .forgot {
-  font-size: var(--step--3) !important;
+  font-size: var(--step--2) !important;
   color: hsl(210, 35%, 60%, 0.5) !important;
   text-decoration: underline;
   text-decoration-style: dotted;
@@ -358,8 +383,10 @@ input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
   -webkit-background-clip: text;
   -webkit-text-fill-color: hsl(210, 35%, 60%);
-  box-shadow: inset 0 0 20px 20px hsl(0, 0%, 3%);
-}
+  background-color: #02040D;
+  box-shadow: inset 0 0 20px 20px #02040D;
+} 
+
 
 .checkbox-wrapper input[type="checkbox"] {
   display: none;
@@ -428,8 +455,7 @@ input:-webkit-autofill:active {
   }
 }
 
-.vignette {
-  /* margin-top: 6px; */
+/* .vignette {
   align-self: baseline;
   background-color: hsl(210, 65%, 60%, 0.8);
   background-image: linear-gradient(265deg,
@@ -446,4 +472,4 @@ input:-webkit-autofill:active {
         hsl(222deg 66% 25%) 99%,
         hsl(226deg 68% 16%) 100%,
         hsl(228deg 71% 7%) 100%);
-}
+} */

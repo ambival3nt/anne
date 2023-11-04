@@ -13,26 +13,29 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300&display=swap">
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@100;200;300;400;500;600&display=swap">
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
         <!-- Scripts -->
         @vite(['resources/css/anneStyle.css'])
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
     </head>
-    <body>
-        <div>
+    <body class="font-sans antialiased min-h-[100dvh] flex flex-col text-ltblue-txt">
+
+        <div class="h-full">
             @include('layouts.navigation')
 
             <!-- Page Heading -->
             @if (isset($header))
                 <header>
-                    <div>
+                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>
                 </header>
             @endif
 
             <!-- Page Content -->
-            <main>
+            <main class="flex flex-col h-full items-center text-ltblue-txt">
                 {{ $slot }}
             </main>
         </div>

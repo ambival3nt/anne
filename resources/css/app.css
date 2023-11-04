@@ -1,3 +1,40 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* this doesnt work here */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: hsl(210, 35%, 60%);
+  background-color: #02040D;
+  box-shadow: inset 0 0 20px 20px #02040D;
+}
+
+
+.vignette {
+  background-color: hsl(210, 65%, 60%, 0.8);
+  background-image: linear-gradient(265deg,
+        hsl(228deg 71% 7%) 0%,
+        hsl(226deg 68% 16%) 4%,
+        hsl(222deg 66% 25%) 9%,
+        hsl(219deg 64% 33%) 16%,
+        hsl(216deg 60% 42%) 24%,
+        hsl(213deg 57% 51%) 36%,
+        hsl(210deg 55% 60%) 56%,
+        hsl(213deg 57% 51%) 82%,
+        hsl(216deg 60% 42%) 92%,
+        hsl(219deg 64% 33%) 97%,
+        hsl(222deg 66% 25%) 99%,
+        hsl(226deg 68% 16%) 100%,
+        hsl(228deg 71% 7%) 100%);
+}
+
+.gradient {
+    background: conic-gradient(from 144deg, #203965 0%, #218fbe 32%, #73b1e7 70%, rgba(32,57,101,1) 99%) no-repeat;
+border-radius: 8px;
+padding: 9px;
+box-sizing: border-box;
+}

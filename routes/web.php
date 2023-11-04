@@ -3,6 +3,7 @@
 use App\Http\Controllers\InitBotController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Livewire\MessageHistory;
+use App\Http\Livewire\PlaylistUI;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -35,6 +36,10 @@ Route::get('/history', MessageHistory::class)
 Route::get('/prompt', \App\Http\Livewire\PromptInterface::class)
     ->middleware(['auth', 'verified'])
     ->name('prompt');
+
+Route::get('/playlistUI', PlaylistUI::class)
+    ->middleware(['auth', 'verified'])
+    ->name('playlistUI');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

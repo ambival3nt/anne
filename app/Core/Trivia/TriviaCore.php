@@ -42,73 +42,85 @@ class TriviaCore
         $explodedAnswer = explode(' ', $triviaGame->answer);
         array_splice($explodedAnswer, 1, (count($explodedAnswer)) - 1);
         $removedFirstWordAnswer = implode(' ', $explodedAnswer);
+        if(!$triviaGame->locked) {
+            if ($this->isFuzzyMatch(strtolower($message->content), strtolower($triviaGame->answer))
+                || $this->isFuzzyMatch(strtolower($message->content), strtolower($removedFirstWordAnswer))
+                || strtolower($message->content) == strtolower($triviaGame->answer)
+                || strtolower($message->content) == strtolower($removedFirstWordAnswer)
+            ) {
 
-        if ($this->isFuzzyMatch(strtolower($message->content), strtolower($triviaGame->answer))
-            || $this->isFuzzyMatch(strtolower($message->content), strtolower($removedFirstWordAnswer))
-            || strtolower($message->content) == strtolower($triviaGame->answer)
-            || strtolower($message->content) == strtolower($removedFirstWordAnswer)
-        ) {
-            $isCorrect = true;
-        }
+                $isCorrect = true;
 
-        if ($isCorrect) {
-            $loop = Loop::get();
-            $loop->cancelTimer(self::$staticTimer);
+            }
 
-            $triviaGame->round++;
-            $triviaGame->save();
+            if ($isCorrect) {
+
+                $triviaGame->lock();
+                $loop = Loop::get();
+                $loop->cancelTimer(self::$staticTimer);
+
+                $triviaGame->round++;
+                $triviaGame->save();
 
 
 // grab player from list
-            $players = new TriviaPlayers();
-            $correctPlayer = $players->find($message->author->id) ?? null;
-            $correctPlayerAvatar = new Person;
-            $correctPlayerAvatar = $correctPlayerAvatar->find($message->author->id)->avatar ?? null;
+                $players = new TriviaPlayers();
+                $correctPlayer = $players->find($message->author->id) ?? null;
+                $correctPlayerAvatar = new Person;
+                $correctPlayerAvatar = $correctPlayerAvatar->find($message->author->id)->avatar ?? null;
 
-            $details = [
-                'winner' => $message->author->username,
-                'question' => $triviaGame->question,
-                'answer' => $triviaGame->answer,
-                'score' => $correctPlayer->score ?? 1,
-                'avatar' => $message->author->avatar,
-            ];
+                $details = [
+                    'winner' => $message->author->username,
+                    'question' => $triviaGame->question,
+                    'answer' => $triviaGame->answer,
+                    'score' => $correctPlayer->score ?? 1,
+                    'avatar' => $message->author->avatar ?? '',
+                ];
 
 // announce win
-            $correctEmbed = self::buildCorrectEmbed($discord, $details);
-            $correctEmbedMessage = new MessageBuilder();
-            $correctEmbedMessage->addEmbed($correctEmbed);
+                $correctEmbed = self::buildCorrectEmbed($discord, $details);
+                $correctEmbedMessage = new MessageBuilder();
+                $correctEmbedMessage->addEmbed($correctEmbed);
 
 
 //            $correctReply = $message->author->username . ' got it! It was: ' . $triviaGame->answer;
-            $message->channel->sendMessage($correctEmbedMessage);
+                $message->channel->sendMessage($correctEmbedMessage);
 
 
 // add player if they aren't on it
-            if (!$correctPlayer) {
-                $players->addPlayer($message->author->id);
-                $correctPlayer = $players->find($message->author->id);
-            }
+                if (!$correctPlayer) {
+                    $players->addPlayer($message->author->id);
+                    $correctPlayer = $players->find($message->author->id);
+                }
 
 // add point to player
-            $correctPlayer->addPoint($message->author->id, 1);
+                $correctPlayer->addPoint($message->author->id, 1);
 
-            try {
-                // Check for the win condition
-                $isWinner = $this->checkWinCondition($correctPlayer, $message);
-                if ($isWinner) {
-                    //end the game
-                    return $this->announceWinner($correctPlayer, $message, $discord);
-                } else {
-                    //start the next round
-                    delay(5.0);
-                    return $this->startNewQuestion($discord, $triviaGame, false);
+                try {
+                    // Check for the win condition
+                    $isWinner = $this->checkWinCondition($correctPlayer, $message);
+                    if ($isWinner) {
+                        //end the game
+                        return $this->announceWinner($correctPlayer, $message, $discord);
+                    } else {
+                        try {
+                            //start the next round
+                            delay(5.0);
+
+                        } catch (Exception $e) {
+                            Log::debug($e->getMessage() . ' L' . $e->getLine() . ' TriviaCore');
+                        }
+
+
+                        return $this->startNewQuestion($discord, $triviaGame, false);
+                    }
+                } catch (\Exception $e) {
+                    Log::debug($e->getMessage());
+                    $message->channel->sendMessage('I tried to break. Shame on me.');
                 }
-            }catch(\Exception $e){
-              Log::debug($e->getMessage());
-                $message->channel->sendMessage('I tried to break. Shame on me.');
+            } else {
+                return ['timer' => null, 'error' => false, 'message' => null];
             }
-        } else {
-            return ['timer' => null, 'error' => false, 'message' => null];
         }
     }
 
@@ -158,7 +170,7 @@ class TriviaCore
 
         if ($timeoutResponse) {
             $discord->getChannel($triviaGame->channel)->sendMessage("Time's up. It was: " . $triviaGame->answer);
-
+            $triviaGame->lock();
             //if all 50 questions have been burned, get 50 new ones
             if ($triviaGame->question_key == 49) {
                 $triviaGame->getNewQuestionBlob();
@@ -188,8 +200,8 @@ class TriviaCore
                 || str_contains($lowerQuestion, "which one of the following")
                 || str_contains($lowerQuestion, "which of these")
                 || str_contains($lowerQuestion, "which one of these")
-                || str_starts_with($lowerQuestion, "which")
-                || str_starts_with($lowerQuestion, "Which")) {
+                || str_contains($lowerQuestion, "which")
+                || str_contains($lowerQuestion, "Which")) {
                 $newQA = $this->convertMultipleChoice($questionBlob[$triviaGame->question_key]->question->text,
                     $questionBlob[$triviaGame->question_key]->correctAnswer,
                     $questionBlob[$triviaGame->question_key]->incorrectAnswers
@@ -201,7 +213,6 @@ class TriviaCore
 
             } else {
 
-
                 $triviaGame->question = $questionBlob[$triviaGame->question_key]->question->text;
                 $triviaGame->answer = $questionBlob[$triviaGame->question_key]->correctAnswer;
 
@@ -209,13 +220,16 @@ class TriviaCore
             }
             $triviaGame->save();
 
-            delay(5.0);
-
+            try {
+                delay(5.0);
+            }catch(Exception $e){
+                Log::debug($e->getMessage() . ' L' . $e->getLine() . ' TriviaCore');
+            }
 
             $questionOutput = $output .
                 "Round " . $triviaGame->round . "\nQuestion: " . $questionDisplay;
 
-
+            $triviaGame->unlock();
             $discord->getChannel($triviaGame->channel)->sendMessage($questionOutput);
 
         } else {
@@ -242,14 +256,19 @@ class TriviaCore
 
             $questionOutput = $output .
                 "Round " . $triviaGame->round . "\nQuestion: " . $triviaGame->question;
+            $triviaGame->unlock();
         }
 
         // Start a timer for 30 seconds
 
 
         self::$staticTimer = $loop->addTimer(30, function () use ($discord, $triviaGame) {
-            Loop::get()->cancelTimer(TriviaCore::$staticTimer);
-            delay(2.0);
+            try {
+                Loop::get()->cancelTimer(TriviaCore::$staticTimer);
+                delay(2.0);
+            }catch(Exception $e){
+                Log::debug($e->getMessage() . ' L' . $e->getLine() . $e->getFile());
+            }
             $this->startNewQuestion($discord, $triviaGame, true);
         });
 

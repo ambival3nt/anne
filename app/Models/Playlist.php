@@ -324,7 +324,7 @@ class Playlist extends Model
      * Relation to Person model
      * @return BelongsTo
      */
-    protected function person(){
+    public function person(){
         return $this->belongsTo(Person::class);
     }
 

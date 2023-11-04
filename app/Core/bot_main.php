@@ -75,10 +75,9 @@ class bot_main
                    $triviaCore = new TriviaCore();
                    $triviaReturn = $triviaCore->gameHandler($discord, $triviaGame, $message);
 
-                   if($triviaReturn['message']){
+                   if(data_get($triviaReturn,'message',null) !== null  ){
                        $message->channel->sendMessage($triviaReturn['message']);
-                   }
-                   if($triviaReturn['error']){
+                   }else if(data_get($triviaReturn, 'error', false)){
                        $triviaGame->abort();
                        $message->channel->sendMessage('Error occurred. Aborting Game.');
                    }
