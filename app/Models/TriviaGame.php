@@ -24,6 +24,7 @@ class TriviaGame extends Model
         'round',
         'question_blob',
         'question_key',
+        'locked',
     ];
 
     /**
@@ -52,7 +53,8 @@ class TriviaGame extends Model
             'answer' => null,
             'question_blob' => $blob,
             'question_key' => 0,
-        ]) ?? null;
+            'locked' => false,
+            ]) ?? null;
 
             return $newGame;
 
@@ -74,5 +76,14 @@ class TriviaGame extends Model
         return $this;
     }
 
+    public function lock(){
+        $this->locked = true;
+        $this->save();
+    }
+
+    public function unlock(){
+        $this->locked = false;
+        $this->save();
+    }
 
 }

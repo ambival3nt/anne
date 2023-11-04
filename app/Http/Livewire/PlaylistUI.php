@@ -2,16 +2,40 @@
 
 namespace App\Http\Livewire;
 
+use App\Models\Playlist;
+use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Response;
+use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 
 class PlaylistUI extends Component
 {
-    
-    public function render()
+
+ public $paginator;
+
+  public function render()
     {
-        return view('livewire.playlist-u-i', [
-            'songs' => \App\Models\Playlist::with('person')->take(5)->get()
-        ]);
+
+        return view('livewire.playlist-u-i');
+
+    }
+
+    public function mount(){
+        $paginated = Playlist::with('person')->paginate(5);
+
+        $this->paginator = $paginated->toJson();
+
+    }
+
+    public function pageHandler($button){
+
+            //convert to int
+            $page = (int)$button;
+
+            //TODO: cache this
+            $paginated = Playlist::with('person')->paginate(5, ['*'], 'page', $page);
+            $this->paginator = $paginated->toJson();
+
     }
 
     public function getIcon($source)
