@@ -95,17 +95,18 @@ class PromptInterface extends Component
     }
 
     public function toggleModal($modalName){
+
         switch($modalName){
             case 'file':
+                $this->modalData = 'file';
                 $this->showModal = true;
-                $modalData = 'Anne';
                 break;
             case 'anne':
+                $this->modalData = 'anne';
                 $this->showModal = true;
-                $modalData = 'File';
                 break;
             default:
-                $this->showModal=false;
+//                $this->showModal=false;
         }
     }
 

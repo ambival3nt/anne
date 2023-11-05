@@ -149,19 +149,14 @@ class Playlist extends Model
             $color = $this->getTrackColor($item['source']) ?? null;
 
             $timeString = Carbon::parse($item['timestamp'])->toDayDateTimeString();
-//                ->settings([
-//                'toStringFormat' => 'g:i:s a',
-//            ]
-//        );
+
             $embed = new Embed($discord);
             $embed->setTitle(("$i. " . $item['artist'] . " - " . $item['name']));
             $embed->setDescription('' . $personName . ' @ '. $timeString . ' -=- '. $item['duration'] . "                   ");
-//            $embed->setDescription('' . $personName . ' @ '. $timeString . ' -=- ' . 'on ' . $item['source']  . " -=- ". $item['duration']);
             $embed->setURL($url ?? null);
-//            $embed->setAuthor("$i. $personName @ $timeString" ?? "");
             $embed->setColor($color);
             $embed->setThumbnail($item['thumbnail']);
-//            $embed->setFooter('by ' . $personName . ' @ '. $timeString);
+
 
             return $embed;
 

@@ -21,6 +21,8 @@ use App\Services\ButtonService;
 use Carbon\Carbon;
 use Discord\Builders\MessageBuilder;
 use Discord\Parts\Embed\Embed;
+use Discord\Parts\Guild\Emoji;
+use Discord\Parts\Guild\Guild;
 use Illuminate\Support\Facades\Log;
 use OpenAI;
 use phpw2v\Word2Vec;
@@ -318,9 +320,30 @@ return $message->channel->sendMessage($fart);
                 $userLabelEmbed = new Embed($discord);
 
                 $listUser = $discord->users->get('id', $message->mentions->first()->id);
-                $url='https://cdn.discordapp.com/avatars/' . $listUser->id . '/' . $listUser->avatar . '.webp?size=16';
-                $userLabelEmbed->setThumbnail($url);
-                $userLabelEmbed->setDescription($listUser->username . ' - Total songs posted: ' . count($retrievedList));
+//                $url='https://cdn.discordapp.com/avatars/' . $listUser->id . '/' . $listUser->avatar . '.webp?size=16';
+
+
+                //TODO: emojis aren't deleting after being made and can't seem to get id out of the callback
+//                // nab avatar and save local
+//                $downloadImageData = file_get_contents($listUser->avatar);
+//                file_put_contents('avatarEmoji.jpg', $downloadImageData);
+//
+//                // create emoji
+//                $uploadImageData = file_get_contents('avatarEmoji.jpg');
+//
+//                $message->guild->createEmoji([
+//                    'name' => 'playlistUser',
+//                    'image' => 'data:image/jpeg;base64,' . base64_encode($uploadImageData)
+//                ])->then(function ($emoji) use ($message){
+//                    $emojiId = $emoji->id;
+//                    $message->channel->sendMessage('<:playlistUser:'.$emojiId .'>');
+//                    $emoji->delete();
+//                });
+
+//                $userLabelEmbed->setThumbnail($listUser->avatar.'?size=128');
+
+                dd(collect($retrievedList['embeds'])->sortByDesc('timestamp')->last());
+                $userLabelEmbed->setDescription($listUser->username . ' - Total songs posted: ' . count($retrievedList['embeds']) . ' - Rank: #blah/blah');
             }
 
         }
@@ -374,7 +397,7 @@ return $message->channel->sendMessage($fart);
         $messageWithPaginator = ButtonService::buildPaginator($totalPages, $currentPage, $discord, $playlistPageArray);
 
         //output
-        $message->channel->sendMessage("Playlist for: " . $listTitle);
+
         return $message->channel->sendMessage($messageWithPaginator);
 
     }
