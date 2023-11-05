@@ -31,7 +31,6 @@ module.exports = {
                 "fluid-s-l": "clamp(0.75rem, calc(0.00rem + 2.50vw), 2.00rem)",
             },
             colors: {
-                //                midnight: "hsl(228, 70%, 6%)",
                 midnight: {
                     DEFAULT: "#02040D",
                     950: "#02040D",
@@ -59,11 +58,12 @@ module.exports = {
                     100: "#353A46",
                 },
                 ltblue: {
+                    DEFAULT: "hsl(210, 35%, 60%)",
                     15: "hsl(210, 15%, 60%)",
                     20: "hsl(210, 20%, 60%)",
                     25: "hsl(210, 25%, 60%)",
                     30: "hsl(210, 30%, 60%)",
-                    DEFAULT: "hsl(210, 35%, 60%)",
+                    35: "hsl(210, 35%, 60%)",
                     40: "hsl(210, 40%, 60%)",
                     45: "hsl(210, 45%, 60%)",
                     50: "hsl(210, 50%, 60%)",
@@ -87,7 +87,7 @@ module.exports = {
                 glow: "0px 0px 5px 0px",
             },
             gridTemplateColumns: {
-                "furnace": "minmax(12ch, 22ch) minmax(5ch, 10ch) minmax(30ch, 50vw)",
+                furnace: "minmax(12ch, 22ch) minmax(5ch, 10ch) minmax(30ch, 50vw)",
             },
         },
     },
@@ -95,7 +95,7 @@ module.exports = {
         themes: [
             {
                 mytheme: {
-                    primary: "#38bdf8",
+                    primary: "hsl(210, 55%, 60%)",
 
                     secondary: "#7c3aed",
 

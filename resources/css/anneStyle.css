@@ -1,124 +1,139 @@
-@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200;0,300;0,400;0,500;1,200;1,300;1,400;1,500&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Albert+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Nunito+Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200;0,300;0,400;0,500;1,200;1,300;1,400;1,500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Albert+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Nunito+Sans:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 
 :root {
-  color-scheme: dark;
-  --dark-bg: linear-gradient(hsl(228, 70%, 6%) 75%, hsl(0, 0%, 0%) 100%);
-  --midnight: #02040D;
-  --ltblue: hsl(210, 35%, 60%);
-  --ltblue-55: #6199d1;
-  --ltblack: hsl(0, 0%, 3%);
+    color-scheme: dark;
+    --dark-bg: linear-gradient(hsl(228, 70%, 6%) 75%, hsl(0, 0%, 0%) 100%);
+    --midnight: #02040d;
+    --ltblue: hsl(210, 35%, 60%);
+    --ltblue-55: #6199d1;
+    --ltblack: hsl(0, 0%, 3%);
 
-  --midnight-950: #02040D;
-  --midnight-900: #040816;
-  --midnight-800: #060C1E;
-  --midnight-700: #081026;
-  --midnight-600: #0A152F;
-  --midnight-500: #0C1B37;
-  --midnight-400: #0E213F;
-  --midnight-300: #102747;
-  --midnight-200: #122D4E;
-  --midnight-100: #153456;
+    --midnight-950: #02040d;
+    --midnight-900: #040816;
+    --midnight-800: #060c1e;
+    --midnight-700: #081026;
+    --midnight-600: #0a152f;
+    --midnight-500: #0c1b37;
+    --midnight-400: #0e213f;
+    --midnight-300: #102747;
+    --midnight-200: #122d4e;
+    --midnight-100: #153456;
 
-  --dusk: #080a17;
-  --dusk-950: #080A17;
-  --dusk-900: #0B0F1E;
-  --dusk-800: #0F1324;
-  --dusk-700: #13182A;
-  --dusk-600: #181E30;
-  --dusk-500: #1D2335;
-  --dusk-400: #22293A;
-  --dusk-300: #282F3E;
-  --dusk-200: #2E3442;
-  --dusk-100: #353A46;
-  
-/* @link https://utopia.fyi/type/calculator?c=640,16,1.125,1280,20,1.2,5,2,&s=0.75|0.5|0.25,1.5|2|3|4|6,s-l&g=s,l,xl,12 */
-  --step--3: clamp(0.43rem, calc(0.39rem + 0.16vw), 0.51rem);
-  --step--2: clamp(0.52rem, calc(0.45rem + 0.24vw), 0.64rem);
-  --step--1: clamp(0.63rem, calc(0.52rem + 0.35vw), 0.80rem);
-  --step-0: clamp(0.75rem, calc(0.60rem + 0.50vw), 1.00rem);
-  --step-1: clamp(0.90rem, calc(0.69rem + 0.70vw), 1.25rem);
-  --step-2: clamp(1.08rem, calc(0.79rem + 0.97vw), 1.56rem);
-  --step-3: clamp(1.30rem, calc(0.90rem + 1.31vw), 1.95rem);
-  --step-4: clamp(1.56rem, calc(1.02rem + 1.77vw), 2.44rem);
-  --step-5: clamp(1.87rem, calc(1.15rem + 2.37vw), 3.05rem);
-  
-  --space-3xs: clamp(0.19rem, calc(0.15rem + 0.13vw), 0.25rem);
-  --space-2xs: clamp(0.38rem, calc(0.30rem + 0.25vw), 0.50rem);
-  --space-xs: clamp(0.56rem, calc(0.45rem + 0.38vw), 0.75rem);
-  --space-s: clamp(0.75rem, calc(0.60rem + 0.50vw), 1.00rem);
-  --space-m: clamp(1.13rem, calc(0.90rem + 0.75vw), 1.50rem);
-  --space-l: clamp(1.50rem, calc(1.20rem + 1.00vw), 2.00rem);
-  --space-xl: clamp(2.25rem, calc(1.80rem + 1.50vw), 3.00rem);
-  --space-2xl: clamp(3.00rem, calc(2.40rem + 2.00vw), 4.00rem);
-  --space-3xl: clamp(4.50rem, calc(3.60rem + 3.00vw), 6.00rem);
-  
-  --space-3xs-2xs: clamp(0.19rem, calc(0.00rem + 0.63vw), 0.50rem);
-  --space-2xs-xs: clamp(0.38rem, calc(0.15rem + 0.75vw), 0.75rem);
-  --space-xs-s: clamp(0.56rem, calc(0.30rem + 0.88vw), 1.00rem);
-  --space-s-m: clamp(0.75rem, calc(0.30rem + 1.50vw), 1.50rem);
-  --space-m-l: clamp(1.13rem, calc(0.60rem + 1.75vw), 2.00rem);
-  --space-l-xl: clamp(1.50rem, calc(0.60rem + 3.00vw), 3.00rem);
-  --space-xl-2xl: clamp(2.25rem, calc(1.20rem + 3.50vw), 4.00rem);
-  --space-2xl-3xl: clamp(3.00rem, calc(1.20rem + 6.00vw), 6.00rem);
+    --dusk: #080a17;
+    --dusk-950: #080a17;
+    --dusk-900: #0b0f1e;
+    --dusk-800: #0f1324;
+    --dusk-700: #13182a;
+    --dusk-600: #181e30;
+    --dusk-500: #1d2335;
+    --dusk-400: #22293a;
+    --dusk-300: #282f3e;
+    --dusk-200: #2e3442;
+    --dusk-100: #353a46;
 
-  --space-s-l: clamp(0.75rem, calc(0.00rem + 2.50vw), 2.00rem);
+    /* @link https://utopia.fyi/type/calculator?c=640,16,1.125,1280,20,1.2,5,2,&s=0.75|0.5|0.25,1.5|2|3|4|6,s-l&g=s,l,xl,12 */
+    --step--3: clamp(0.43rem, calc(0.39rem + 0.16vw), 0.51rem);
+    --step--2: clamp(0.52rem, calc(0.45rem + 0.24vw), 0.64rem);
+    --step--1: clamp(0.63rem, calc(0.52rem + 0.35vw), 0.8rem);
+    --step-0: clamp(0.75rem, calc(0.6rem + 0.5vw), 1rem);
+    --step-1: clamp(0.9rem, calc(0.69rem + 0.7vw), 1.25rem);
+    --step-2: clamp(1.08rem, calc(0.79rem + 0.97vw), 1.56rem);
+    --step-3: clamp(1.3rem, calc(0.9rem + 1.31vw), 1.95rem);
+    --step-4: clamp(1.56rem, calc(1.02rem + 1.77vw), 2.44rem);
+    --step-5: clamp(1.87rem, calc(1.15rem + 2.37vw), 3.05rem);
+
+    --space-3xs: clamp(0.19rem, calc(0.15rem + 0.13vw), 0.25rem);
+    --space-2xs: clamp(0.38rem, calc(0.3rem + 0.25vw), 0.5rem);
+    --space-xs: clamp(0.56rem, calc(0.45rem + 0.38vw), 0.75rem);
+    --space-s: clamp(0.75rem, calc(0.6rem + 0.5vw), 1rem);
+    --space-m: clamp(1.13rem, calc(0.9rem + 0.75vw), 1.5rem);
+    --space-l: clamp(1.5rem, calc(1.2rem + 1vw), 2rem);
+    --space-xl: clamp(2.25rem, calc(1.8rem + 1.5vw), 3rem);
+    --space-2xl: clamp(3rem, calc(2.4rem + 2vw), 4rem);
+    --space-3xl: clamp(4.5rem, calc(3.6rem + 3vw), 6rem);
+
+    --space-3xs-2xs: clamp(0.19rem, calc(0rem + 0.63vw), 0.5rem);
+    --space-2xs-xs: clamp(0.38rem, calc(0.15rem + 0.75vw), 0.75rem);
+    --space-xs-s: clamp(0.56rem, calc(0.3rem + 0.88vw), 1rem);
+    --space-s-m: clamp(0.75rem, calc(0.3rem + 1.5vw), 1.5rem);
+    --space-m-l: clamp(1.13rem, calc(0.6rem + 1.75vw), 2rem);
+    --space-l-xl: clamp(1.5rem, calc(0.6rem + 3vw), 3rem);
+    --space-xl-2xl: clamp(2.25rem, calc(1.2rem + 3.5vw), 4rem);
+    --space-2xl-3xl: clamp(3rem, calc(1.2rem + 6vw), 6rem);
+
+    --space-s-l: clamp(0.75rem, calc(0rem + 2.5vw), 2rem);
 }
 
-*, ::before, ::after {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+*,
+::before,
+::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 html {
-  font-family: 'Nunito', 'Albert Sans', sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  font-weight: 300;
+    font-family:
+        "Nunito",
+        "Albert Sans",
+        sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        Segoe UI,
+        Roboto,
+        Helvetica Neue,
+        Arial,
+        Noto Sans,
+        sans-serif,
+        Apple Color Emoji,
+        Segoe UI Emoji,
+        Segoe UI Symbol,
+        Noto Color Emoji;
+    /* line-height: 1.5; */
+    -webkit-font-smoothing: antialiased;
+    font-weight: 300;
 }
 
-h1,h2,h3,h4,h5,h6 {
+/* h1,h2,h3,h4,h5,h6 {
   font-size: inherit;
   font-weight: inherit;
-}
+} */
 
 .welcome a,
-a:visited {
-  text-decoration: none;
-  color: var(--ltblue);
-  cursor: pointer;
+.welcome a:visited {
+    text-decoration: none;
+    color: var(--ltblue);
+    cursor: pointer;
 }
 
 .welcome a:hover {
-  color: hsl(210, 65%, 60%);
+    color: hsl(210, 65%, 60%);
 }
-
-
 
 img,
 svg {
-  vertical-align: middle;
-  max-width: 100%;
-  height: auto;
+    vertical-align: middle;
+    max-width: 100%;
+    height: auto;
 }
 
 body {
-  background-color: var(--midnight);
-  /* background: linear-gradient(hsl(228, 70%, 6%) 65%, hsl(0, 0%, 0%) 100%); */
-  /* min-height: 100dvh; */
-  /* font-size: var(--step-0); */
-  /* color: var(--ltblue); */
-  /* font-family: 'Nunito Sans', 'Albert Sans', Helvetica, sans-serif; */
-  /* -webkit-font-smoothing: antialiased; */
-
-  display: flex;
-  flex-direction: column;
-  /* justify-content: center; */
-  /* align-items: center; */
+    background-color: var(--midnight);
+    /* height: 100dvh; */
+    /* background: linear-gradient(hsl(228, 70%, 6%) 65%, hsl(0, 0%, 0%) 100%); */
+    /* min-height: 100dvh; */
+    /* font-size: var(--step-0); */
+    /* color: var(--ltblue); */
+    /* font-family: 'Nunito Sans', 'Albert Sans', Helvetica, sans-serif; */
+    /* -webkit-font-smoothing: antialiased; */
+    /* display: flex;
+  flex-direction: column; */
+    /* justify-content: center; */
+    /* align-items: center; */
 }
 
-/* deals with min-h-screen */
 /* body>div {
   height: 100dvh;
   width: 100%;
@@ -142,13 +157,13 @@ body {
 } */
 
 .blurb {
-  padding: 0 var(--space-s);
-  padding-bottom: var(--space-s);
-  font-style: italic;
+    padding: 0 var(--space-s);
+    padding-bottom: var(--space-s);
+    font-style: italic;
 }
 
 /* blue bordered boxes */
-.display {
+/* .display {
   background-color: hsla(0, 0%, 0%, 0.5);
   border: 1px solid hsl(210, 65%, 60%, 0.2);
   border-radius: 0.5em;
@@ -158,13 +173,10 @@ body {
   line-height: 1.5;
   color: var(--ltblue);
   padding: var(--space-s-m);
-  /* margin: var(--space-l); */
-  /* max-height: 75dvh; */
   overflow-y: auto;
-  /* resize: horizontal; */
-}
+} */
 
-.mono-display {
+/* .mono-display {
   background-color: hsla(0, 0%, 0%, 0.5);
   border: 1px solid hsl(210, 65%, 60%, 0.2);
   border-radius: 0.5em;
@@ -175,36 +187,50 @@ body {
   color: var(--ltblue);
   padding: var(--space-m-l);
   margin: var(--space-l);
-}
+} */
 
-/* .display {
-  ::-webkit-scrollbar {
+ ::-webkit-scrollbar {
   width: 10px;
   height: 10px
   }
+
+  /* ::-webkit-scrollbar-track {
+    border-radius: 5px;
+    background-color: var(--midnight);
+  } */
+
   ::-webkit-scrollbar-thumb {
     height: 6px;
-    border: 2px solid rgba(0,0,0,0);
+    border: 2px solid initial;
     background-clip: padding-box;
-    -webkit-border-radius: 7px;
-    background-color: hsla(220, 100%, 59%, 0.20)
+    border-radius: 5px;
+    background-color: var(--midnight-700);
   }
+
+  ::-webkit-scrollbar-track-piece {
+    background-color: var(--midnight-900);
+  }
+
+ ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--midnight-600);
+ }
+
   ::-webkit-scrollbar-button {
     width: 0;
     height: 0;
     display: none
   }
   ::-webkit-scrollbar-corner {
-    background-color: rgba(0,0,0,0)
+    background-color: rgba(0,0,0,0.5)
   } 
-} */
+
 
 /* .furnace { */
-  /* display: grid; */
-  /* grid-template-columns: minmax(12ch, 22ch) minmax(5ch, 10ch) minmax(30ch, 50vw); */
-  /* grid-template-rows: auto; */
-  /* max-height: 100dvh; */
-  /* color: hsl(210, 25%, 60%); */
+/* display: grid; */
+/* grid-template-columns: minmax(12ch, 22ch) minmax(5ch, 10ch) minmax(30ch, 50vw); */
+/* grid-template-rows: auto; */
+/* max-height: 100dvh; */
+/* color: hsl(210, 25%, 60%); */
 /* } */
 
 /* .furnace>div {
@@ -239,221 +265,221 @@ body {
   word-break: break-word;
 } */
 
-
-
 .welcome {
-  display: flex;
-  flex-direction: column;
-  align-self: center;
-  align-items: center;
-  justify-content: center;
-  place-self: center;
-  max-width: 90%;
-  margin: auto;
-  font-size: var(--step-1);
-  color: var(--ltblue);
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    align-self: center;
+    align-items: center;
+    justify-content: center;
+    place-self: center;
+    width: 90%;
+    margin: auto;
+    font-size: var(--step-1);
+    color: var(--ltblue);
 }
 
-.welcome>div {
-  display: flex;
+.welcome > div {
+    display: flex;
 }
 
 .image {
-  display: block;
-  margin-right: var(--space-m);
+    display: block;
+    margin-right: var(--space-m);
 }
 
 .modal {
-  justify-content: center;
+    justify-content: center;
 }
 
-.modal>h1 {
-  font-size: var(--step-3);
-  font-weight: 400;
-  margin: 1rem 0;
-  min-width: 15ch;
+.modal > h1 {
+    font-size: var(--step-3);
+    font-weight: 400;
+    margin: 1rem 0;
+    min-width: 15ch;
 }
 
 .welcome p {
-  font-size: var(--step--1);
-  color: hsl(210, 35%, 60%, 0.7);
-  padding: 0 var(--space-xl);
-  align-self: center;
+    font-size: var(--step--1);
+    color: hsl(210, 35%, 60%, 0.7);
+    padding: 0 var(--space-xl);
+    align-self: center;
 }
 
 .welcome p,
-h1~div {
-  margin: 1em 0;
+h1 ~ div {
+    margin: 1em 0;
 }
 
-form>div:last-of-type {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+form > div:last-of-type {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
 }
 
 .login-btn {
-  margin-top: 0.75em;
-  display: inline-flex;
-  justify-content: center;
-  border-radius: 0.375em;
-  border: 1px solid hsl(210, 65%, 60%);
-  padding: 0.5em;
-  background-color: var(--ltblue);
-  color: hsl(0, 0%, 0%, 0.7);
-  text-transform: uppercase;
-  font-family: 'Nunito', 'Albert Sans', system-ui, sans-serif;
-  font-size: var(--step-0);
-  font-weight: 600;
-  transition: all 0.2s ease-in-out;
-  &:hover {
-   background-color: hsl(210, 55%, 60%);
-  }
-  &:focus {
+    margin-top: 0.75em;
+    display: inline-flex;
+    justify-content: center;
+    border-radius: 0.375em;
+    border: 1px solid hsl(210, 65%, 60%);
+    padding: 0.5em;
+    background-color: var(--ltblue);
+    color: hsl(0, 0%, 0%, 0.7);
+    text-transform: uppercase;
+    font-family: "Nunito", "Albert Sans", system-ui, sans-serif;
+    font-size: var(--step-0);
+    font-weight: 600;
+    transition: all 0.2s ease-in-out;
+}
+.login-btn:hover {
+    background-color: hsl(210, 55%, 60%);
+}
+.login-btn:focus {
     outline: hsl(210, 45%, 60%) solid 2px;
     outline-offset: 1px;
-  }
 }
-
 
 .forgot {
-  font-size: var(--step--2) !important;
-  color: hsl(210, 35%, 60%, 0.5) !important;
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  text-decoration-thickness: 0.5px;
-  align-self: flex-end;
-  border-radius: 4px;
-  &:focus {
-    outline: hsl(210, 45%, 60%) solid 2px;
-    outline-offset: 1px;
-  }
+    font-size: var(--step--2) !important;
+    color: hsl(210, 35%, 60%, 0.5) !important;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-decoration-thickness: 0.5px;
+    align-self: flex-end;
+    border-radius: 4px;
 }
+    .forgot:focus {
+        outline: hsl(210, 45%, 60%) solid 2px;
+        outline-offset: 1px;
+    }
+
 
 .cancel-btn {
-  margin-top: var(--space-s);
-  display: inline-flex;
-  width: 100%;
-  justify-content: center;
-  border-radius: 0.375em;
-  border: none;
-  padding: 0.5em;
-  background-color: hsl(0, 0%, 0%, 0.5);
-  color: var(--ltblue);
-  text-transform: uppercase;
-  font-size: var(--step-0);
-  &:hover {
-    background-color: hsl(0, 0%, 0%, 0.6);
-    color: hsl(210, 45%, 60%);
-  }
-  &:focus {
-    outline: hsl(210, 45%, 60%, 0.5) solid 2px;
-    outline-offset: 1px;
-  }
+    margin-top: var(--space-s);
+    display: inline-flex;
+    width: 100%;
+    justify-content: center;
+    border-radius: 0.375em;
+    border: none;
+    padding: 0.5em;
+    background-color: hsl(0, 0%, 0%, 0.5);
+    color: var(--ltblue);
+    text-transform: uppercase;
+    font-size: var(--step-0);
 }
+.cancel-btn:hover {
+        background-color: hsl(0, 0%, 0%, 0.6);
+        color: hsl(210, 45%, 60%);
+    }
+    .cancel-btn:focus {
+        outline: hsl(210, 45%, 60%, 0.5) solid 2px;
+        outline-offset: 1px;
+    }
+
 
 .input-label {
-  display: block;
-  margin-bottom: var(--space-3xs);
-  font-size: var(--step-1);
+    display: block;
+    margin-bottom: var(--space-3xs);
+    font-size: var(--step-1);
 }
 
 .input-field {
-  display: block;
-  margin-bottom: var(--space-xs);
-  padding: var(--space-3xs);
-  background-color: hsl(0, 0%, 3%);
-  border: 1px solid hsl(210, 45%, 60%, 0.5);
-  border-radius: 4px;
-  width: 100%;
-  color: hsl(210, 35%, 60%);
-  font-family: 'Nunito Sans', 'Albert Sans', system-ui, sans-serif;
-  /* font-size: var(--step-0); */
-  font-weight: 300;
-  &:focus {
-    outline: 2px solid hsl(210, 45%, 60%);
-    outline-offset: 1px;
-  }
+    display: block;
+    margin-bottom: var(--space-xs);
+    padding: var(--space-3xs);
+    background-color: hsl(0, 0%, 3%);
+    border: 1px solid hsl(210, 45%, 60%, 0.5);
+    border-radius: 4px;
+    width: 100%;
+    color: hsl(210, 35%, 60%);
+    font-family: "Nunito Sans", "Albert Sans", system-ui, sans-serif;
+    /* font-size: var(--step-0); */
+    font-weight: 300;
 }
+    .input-field:focus {
+        outline: 2px solid hsl(210, 45%, 60%);
+        outline-offset: 1px;
+    }
 
 
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: hsl(210, 35%, 60%);
-  background-color: #02040D;
-  box-shadow: inset 0 0 20px 20px #02040D;
-} 
-
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: hsl(210, 35%, 60%);
+    background-color: #02040d;
+    box-shadow: inset 0 0 20px 20px #02040d;
+}
 
 .checkbox-wrapper input[type="checkbox"] {
-  display: none;
-  visibility: hidden;
+    display: none;
+    visibility: hidden;
 }
 
 .checkbox-wrapper {
-  display: block;
+    display: block;
 }
 
 .checkbox-wrapper .check {
-  cursor: pointer;
-  /* position: relative; */
-  margin: auto;
-  /* width: var(--step-0); */
-  height: auto;
-  -webkit-tap-highlight-color: transparent;
-  transform: translate3d(0, 0, 0);
+    cursor: pointer;
+    /* position: relative; */
+    margin: auto;
+    /* width: var(--step-0); */
+    height: auto;
+    -webkit-tap-highlight-color: transparent;
+    transform: translate3d(0, 0, 0);
 }
 
 .checkbox-wrapper .check svg {
-  z-index: 1;
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke: hsl(210, 55%, 60%);
-  stroke-width: 1px;
-  transform: translate3d(0, 0, 0);
-  transition: all 0.2s ease;
+    z-index: 1;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke: hsl(210, 55%, 60%);
+    stroke-width: 1px;
+    transform: translate3d(0, 0, 0);
+    transition: all 0.2s ease;
 }
 
 .checkbox-wrapper .check svg path {
-  stroke-dasharray: 60;
-  stroke-dashoffset: 0;
+    stroke-dasharray: 60;
+    stroke-dashoffset: 0;
 }
 
 .checkbox-wrapper .check svg polyline {
-  stroke-dasharray: 22;
-  stroke-dashoffset: 66;
+    stroke-dasharray: 22;
+    stroke-dashoffset: 66;
 }
 
 .checkbox-wrapper .check:hover svg {
-  stroke: hsl(210, 65%, 60%);
+    stroke: hsl(210, 65%, 60%);
 }
 
-.checkbox-wrapper input[type="checkbox"]:checked+.check svg {
-  stroke: hsl(210, 65%, 60%);
+.checkbox-wrapper input[type="checkbox"]:checked + .check svg {
+    stroke: hsl(210, 65%, 60%);
 }
 
-.checkbox-wrapper input[type="checkbox"]:checked+.check svg path {
-  stroke-dashoffset: 60;
-  transition: all 0.3s linear;
+.checkbox-wrapper input[type="checkbox"]:checked + .check svg path {
+    stroke-dashoffset: 60;
+    transition: all 0.3s linear;
 }
 
-.checkbox-wrapper input[type="checkbox"]:checked+.check svg polyline {
-  stroke-dashoffset: 42;
-  transition: all 0.2s linear;
-  transition-delay: 0.15s;
+.checkbox-wrapper input[type="checkbox"]:checked + .check svg polyline {
+    stroke-dashoffset: 42;
+    transition: all 0.2s linear;
+    transition-delay: 0.15s;
 }
 
 .remember_me {
-  font-size: var(--step-0);
-  cursor: pointer;
-  &:hover {
-    color: hsl(210, 55%, 60%);
-  }
+    font-size: var(--step-0);
+    cursor: pointer;
 }
+.remember_me:hover {
+        color: hsl(210, 55%, 60%);
+    }
+
 
 /* .vignette {
   align-self: baseline;

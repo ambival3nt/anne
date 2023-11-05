@@ -1,4 +1,4 @@
-<div class="flex aspect-square">
+<div>
     <img src="{{ Vite::asset('resources/img/disdain.svg') }}">
 </div>
 

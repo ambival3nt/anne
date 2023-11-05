@@ -43,8 +43,8 @@
             <!-- Remember Me -->
             <div class="block mt-4">
                 <label for="remember_me" class="inline-flex items-center">
-                    <input id="remember_me" type="checkbox" class="rounded bg-transparent border-ltblue/50 shadow-sm" name="remember">
-                    <span class="ml-2 text-sm hover:text-ltblue-55">{{ __('Remember me') }}</span>
+                    <input id="remember_me" type="checkbox" class="rounded bg-midnight border-ltblue text-ltblue-55 fill-ltblue shadow-sm" name="remember">
+                    <span class="ml-2 text-sm text-ltblue hover:text-ltblue-55">{{ __('Remember me') }}</span>
                 </label>
             </div>
 

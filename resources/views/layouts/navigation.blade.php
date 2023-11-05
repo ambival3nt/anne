@@ -4,8 +4,8 @@
         <div class="flex h-16 bg-midnight border-b border-b-midnight-500 justify-between">
             <div class="flex">
                 <!-- Logo -->
-                <div class="vignette flex w-[58px]">
-                    <a href="{{ route('dashboard') }}" class="">
+                <div class="vignette w-16">
+                    <a href="{{ route('dashboard') }}">
                         <x-application-logo />
                     </a>
                 </div>
@@ -24,10 +24,12 @@
                     {{-- <x-nav-link :href="route('history')">
                         {{ __('show me') }}
                     </x-nav-link> --}}
-                    <x-nav-link :href="route('prompt')">
+                    <x-nav-link :href="route('prompt')" :active="request()->routeIs('prompt')">
+
                         {{ __('prompt') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('playlistUI')">
+                    <x-nav-link :href="route('playlistUI')" :active="request()->routeIs('playlistUI')">
+
                         {{ __('playlist') }}
                     </x-nav-link>
                 </div>
