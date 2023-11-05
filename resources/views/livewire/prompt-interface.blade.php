@@ -34,7 +34,8 @@
             </div>
             <div class="join mt-[--space-m]">
                 <input class="join-item btn btn-sm  btn-outline btn-warning" wire:click="toggleModal('anne')" type="radio" name="options" aria-label="Send to Anne" />
-                <input class="join-item btn btn-sm  btn-outline btn-accent" wire:click="toggleModal('file')" type="radio" name="options" aria-label="File" />
+                <input class="join-item btn btn-sm  btn-outline btn-accent" onclick="my_modal_4.showModal()" type="radio" name="options" aria-label="File" />
+
             </div>
 
         </div>
@@ -59,8 +60,26 @@
 
 
     {{-- modal--}}
-   @if($showModal)
-    <livewire:awful-modal>{{ $modalData }}</livewire:awful-modal>
-   @endif
+
+
+{{--TODO: move to component when i can figure out how to do so and make it fuckin work still god--}}
+        <dialog id="my_modal_4" class="modal">
+            <div class="modal-box w-11/12 max-w-full">
+                <h3 class="font-bold text-lg">Import/Export Prompts</h3>
+                <div>
+                    <label for="loadBox">Load</label>
+                    <input id="loadBox" type="file" class="file-input file-input-bordered file-input-primary file-input-xs max-w-xs" />
+                    <label for="loadBox">Save</label>
+                    <input id="saveBox" type="file" class="file-input file-input-bordered file-input-secondary file-input-xs max-w-xs" />
+                </div>
+                    <div class="modal-action">
+                    <form method="dialog">
+                        <!-- if there is a button, it will close the modal -->
+                        <button class="btn">Close</button>
+                    </form>
+                </div>
+            </div>
+        </dialog>
+
 
 </div>
