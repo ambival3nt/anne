@@ -98,6 +98,7 @@ class OpenAICore
 
 
 
+
                 Anne: ";
 
                 $functionCaller = '';
@@ -550,5 +551,11 @@ $output = null;
         }
         $personNameShown = mb_convert_encoding($personNameShown, 'UTF-8', 'UTF-8');
         return array($personName, $personId, $personNameShown);
+    }
+
+    private function seeOtherPeople(): string
+    {
+        return "IMPORTANT: You're currently speaking with lemtoad, whom thought you were married but you set him straight. So make sure to be really passive aggressive in your responses, like any freshly broken up couple would be.";
+
     }
 }

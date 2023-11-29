@@ -23,6 +23,7 @@ use Discord\Builders\MessageBuilder;
 use Discord\Parts\Embed\Embed;
 use Discord\Parts\Guild\Emoji;
 use Discord\Parts\Guild\Guild;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use OpenAI;
 use phpw2v\Word2Vec;
@@ -49,7 +50,8 @@ class HandleCommandProcess
             'yoot',
             'trivia',
             'compare',
-        ];
+            'database',
+            ];
 
         return in_array($command, $commandList, true);
     }
@@ -58,7 +60,7 @@ class HandleCommandProcess
     {
         $client=OpenAI::client(getenv('OPENAI_API_KEY'));
 
-        Log::debug("Command: $command\nContent: $content\nMessage: $message\nOwner: $owner");
+//        Log::debug("Command: $command\nContent: $content\nMessage: $message\nOwner: $owner");
 
         $commandArg = "";
 
@@ -68,12 +70,13 @@ class HandleCommandProcess
             } else {
                 $commandArg .= " " . $commandPart;
             }
+            $commandArg = trim($commandArg);
         }
-Log::channel('db')->debug("Arg: $commandArg");
+//Log::channel('db')->debug("Arg: $commandArg");
+
 
 
         switch ($command) {
-
 
             case 'yoot':
 
@@ -115,7 +118,7 @@ Log::channel('db')->debug("Arg: $commandArg");
 
             //help command
             case 'help':
-                $activeCommand = (new HelpCommand)->index($message, $content);
+                $activeCommand = (new HelpCommand);
                 return $activeCommand->index($message, $content);
 
             //earmuffs (respond to owner only)
@@ -186,6 +189,7 @@ Log::channel('db')->debug("Arg: $commandArg");
                 }
                 break;
 
+                //for testing anne's ability to deduce what command to use on a message
             case 'command':
                 return self::extractSelfCommand($commandArray, $message);
                 break;
@@ -201,6 +205,7 @@ Log::channel('db')->debug("Arg: $commandArg");
 
                 if($commandArg == 'top') {
                     Log::channel('db')->debug('top list');
+
                     return Playlist::controller($discord, $message, $commandArg);
 
                 } else {
@@ -241,12 +246,33 @@ Log::channel('db')->debug("Arg: $commandArg");
 //                return $message->channel->sendMesssage('k');
             break;
 
-            case 'fart':
+            case 'broken':
                $fart = new Search();
                $fart = $fart->getSearchResults($commandArg);
 
 return $message->channel->sendMessage($fart);
                 break;
+
+            case 'fart':
+                $dbFart = self::databaseData();
+                $prompt = "You are a database query bot. You have been asked to query the database.\n";
+                $prompt .= "The dialect is MYSQL.\n";
+                $prompt .= "Here is a list of database tables you have available to query: \n$dbFart\n";
+                $prompt .= "You are going to be given a statement in plain english, your job is to return a MYSQL query that will accomplish what the user is asking for.\n";
+                $prompt .= "You can only respond with the SQL query, nothing else.\n";
+                $prompt .= "Here is the user's statement:\n $commandArg\n";
+
+//                $client = OpenAI::client(getenv('OPENAI_API_KEY'));
+//                $response = $client->completions()->create([
+//                    'prompt' => $prompt,
+//                    'temperature' => 0.9,
+//                    'max_tokens' => 150,
+//                    'top_p' => 1,
+//                    'frequency_penalty' => 0.0,
+//                    'presence_penalty' => 0.6,
+//                ]);
+
+                return $message->channel->sendMessage($prompt);
 
             case 'compare':
 
@@ -342,7 +368,7 @@ return $message->channel->sendMessage($fart);
 
 //                $userLabelEmbed->setThumbnail($listUser->avatar.'?size=128');
 
-                dd(collect($retrievedList['embeds'])->sortByDesc('timestamp')->last());
+
                 $userLabelEmbed->setDescription($listUser->username . ' - Total songs posted: ' . count($retrievedList['embeds']) . ' - Rank: #blah/blah');
             }
 
@@ -400,6 +426,15 @@ return $message->channel->sendMessage($fart);
 
         return $message->channel->sendMessage($messageWithPaginator);
 
+    }
+
+    public static function databaseData(){
+        $tableArray = DB::select('SHOW TABLES');
+        $tables = [];
+        foreach($tableArray as $table){
+            $tables[] = $table->{'Tables_in_'.getenv('DB_DATABASE')};
+        }
+        return json_encode($tables,128);
     }
 
 }
