@@ -20,28 +20,30 @@
         @endforeach
 
 
-    </div>
-    <div class="join mt-fluid-m place-self-center">
-        <button type="button"
-                class="join-item btn btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55"
-                wire:click="pageHandler('1')">«
-        </button>
-        <button type="button"
-                class="join-item btn btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55"
-                wire:click="pageHandler('{{json_decode($logData)->current_page - 1 }}')">«
-        </button>
+        <div class="join mt-fluid-m place-self-center">
+            <button type="button"
+                    class="join-item btn btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55"
+                    wire:click="pageHandler('1')">«
+            </button>
+            <button type="button"
+                    class="join-item btn btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55"
+                    wire:click="pageHandler('{{json_decode($logData)->current_page - 1 }}')">«
+            </button>
 
-        <button type="button"
-                class="join-item btn btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55">
-            Page {{json_decode($logData)->current_page}} / {{json_decode($logData)->last_page}}</button>
-        <button type="button"
-                class="join-item btn btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55"
-                wire:click="pageHandler('{{json_decode($logData)->current_page + 1}}')">»
-        </button>
-        <button type="button"
-                class="join-item btn btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55"
-                wire:click="pageHandler('{{json_decode($logData)->last_page}}')">»
-        </button>
+            <button type="button"
+                    class="join-item btn btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55">
+                Page {{json_decode($logData)->current_page}} / {{json_decode($logData)->last_page}}</button>
+            <button type="button"
+                    class="join-item btn btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55"
+                    wire:click="pageHandler('{{json_decode($logData)->current_page + 1}}')">»
+            </button>
+            <button type="button"
+                    class="join-item btn btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55"
+                    wire:click="pageHandler('{{json_decode($logData)->last_page}}')">»
+            </button>
+
+
+        </div>
 
 
     </div>
