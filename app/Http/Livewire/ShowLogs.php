@@ -3,6 +3,7 @@
 namespace App\Http\Livewire;
 
 use App\Models\AnneLogs;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class ShowLogs extends Component
@@ -12,9 +13,7 @@ class ShowLogs extends Component
 
     public function mount(){
 
-
-
-        $paginated = AnneLogs::paginate(20);
+        $paginated = DB::table('log_messages')->paginate(20);
 
         $this->logData = $paginated->toJson();  //paginated output
 
@@ -23,20 +22,15 @@ class ShowLogs extends Component
 
     public function pageHandler($page = null)
     {
-
+            echo($page);
         if ($page) {
             $page = (int)$page;
         } else {
             return false;
         }
 
-        //TODO: cache this
-        $paginated = new AnneLogs;
 
-        //check for dropdown selection, add this condition if a user is selected
-//        if ($this->selectedUser > 0) {
-//            $paginated = $paginated->where('user_id', $this->selectedUser);
-//        }
+        $paginated = DB::table('log_messages');
 
         $paginated = $paginated->paginate(20, ['*'], 'page', $page);
 
