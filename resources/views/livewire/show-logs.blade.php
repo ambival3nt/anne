@@ -28,21 +28,26 @@
         <div class="p-fluid-s text-lg text-left font-semibold">Level</div>
         <div class="p-fluid-s text-lg text-left font-semibold">Message</div>
 
-
+{{--log row loop                        --}}
 
         @foreach (json_decode($logData)->data as $log)
-        <div class="p-fluid-xs [&:nth-child(6n+1)]:bg-midnight-800">
-            {{ $log->logged_at }}
-        </div>
 
-        <div class="p-fluid-xs [&:nth-child(6n+2)]:bg-midnight-800">
-            {{ $log->level }}
-        </div>
+{{--            <div wire:key="log-{{$log->id}}" class="">--}}
 
-        <div class="p-fluid-xs [&:nth-child(6n+3)]:bg-midnight-800 [&:nth-child(3n+3)]:break-words">
-            {{ $log->message }}
-        </div>
+                <div class="p-fluid-xs [&:nth-child(6n+1)]:bg-midnight-800">
+                    {{ $log->logged_at }}
+                </div>
+
+                <div class="p-fluid-xs [&:nth-child(6n+2)]:bg-midnight-800">
+                    {{ $log->level }}
+                </div>
+
+                <div class="p-fluid-xs [&:nth-child(6n+3)]:bg-midnight-800 [&:nth-child(3n+3)]:break-words">
+                    {{ $log->message }}
+                </div>
+{{--            </div>--}}
         @endforeach
+
     </div>
 
 
