@@ -1,4 +1,29 @@
+        <div class="flex justify-center items-center">
+            <div class="join">
+                <button type="button"
+                        class="join-item btn btn-sm btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55 opacity-70"
+                        wire:click="pageHandler('1')">«
+                </button>
+                <button type="button"
+                        class="join-item btn btn-sm btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55 opacity-70"
+                        wire:click="pageHandler('{{json_decode($logData)->current_page - 1 }}')">«
+                </button>
+
+                <button type="button"
+                        class="join-item btn btn-sm btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55 opacity-70">
+                    Page {{json_decode($logData)->current_page}} / {{json_decode($logData)->last_page}}</button>
+                <button type="button"
+                        class="join-item btn btn-sm btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55 opacity-70"
+                        wire:click="pageHandler('{{json_decode($logData)->current_page + 1}}')">»
+                </button>
+                <button type="button"
+                        class="join-item btn btn-sm btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55 opacity-70"
+                        wire:click="pageHandler('{{json_decode($logData)->last_page}}')">»
+                </button>
+            </div>
+        </div>
     <div class="grid grid-cols-furnace grid-flow-row">
+
         <div class="p-fluid-s text-lg text-left font-semibold">Timestamp</div>
         <div class="p-fluid-s text-lg text-left font-semibold">Level</div>
         <div class="p-fluid-s text-lg text-left font-semibold">Message</div>
@@ -18,30 +43,22 @@
             {{ $log->message }}
         </div>
         @endforeach
-
-
     </div>
-    <div class="join mt-fluid-m place-self-center">
-        <button type="button"
-                class="join-item btn btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55"
-                wire:click="pageHandler('1')">«
-        </button>
-        <button type="button"
-                class="join-item btn btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55"
-                wire:click="pageHandler('{{json_decode($logData)->current_page - 1 }}')">«
-        </button>
 
-        <button type="button"
-                class="join-item btn btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55">
-            Page {{json_decode($logData)->current_page}} / {{json_decode($logData)->last_page}}</button>
-        <button type="button"
-                class="join-item btn btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55"
-                wire:click="pageHandler('{{json_decode($logData)->current_page + 1}}')">»
-        </button>
-        <button type="button"
-                class="join-item btn btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55"
-                wire:click="pageHandler('{{json_decode($logData)->last_page}}')">»
-        </button>
+    
+     <div class="flex justify-center items-center mt-4">
+         <div class="join">
+             <button type="button" class="join-item btn btn-sm btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55 opacity-70" wire:click="pageHandler('1')">«
+             </button>
+             <button type="button" class="join-item btn btn-sm btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55 opacity-70" wire:click="pageHandler('{{json_decode($logData)->current_page - 1 }}')">«
+             </button>
 
+             <button type="button" class="join-item btn btn-sm btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55 opacity-70">
+                 Page {{json_decode($logData)->current_page}} / {{json_decode($logData)->last_page}}</button>
+             <button type="button" class="join-item btn btn-sm btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55 opacity-70" wire:click="pageHandler('{{json_decode($logData)->current_page + 1}}')">»
+             </button>
+             <button type="button" class="join-item btn btn-sm btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55 opacity-70" wire:click="pageHandler('{{json_decode($logData)->last_page}}')">»
+             </button>
+         </div>
+     </div>
 
-    </div>

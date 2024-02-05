@@ -138,6 +138,9 @@ body {
 .blurb {
   padding: 0 var(--space-s);
   padding-bottom: var(--space-s);
+  font-family: 'Noto Sans Mono';
+  font-size: var(--step-0) important!;
+  letter-spacing: 0.8 important!;
   font-style: italic;
 }
 
@@ -153,10 +156,14 @@ body {
   color: var(--ltblue);
   padding: var(--space-s-m);
   overflow-y: auto;
+  transition-property: filter;
+  transition-timing-function: linear;
+
 }
 
 .display:hover {
   filter: brightness(1.2);
+  transition-duration: 300ms;
 }
 
 .mono-display {
