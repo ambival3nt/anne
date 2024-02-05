@@ -38,7 +38,7 @@ class ShowLogs extends Component
 //            $paginated = $paginated->where('user_id', $this->selectedUser);
 //        }
 
-        $paginated = $paginated->paginate(5, ['*'], 'page', $page);
+        $paginated = $paginated->paginate(20, ['*'], 'page', $page);
 
         $this->logData = $paginated->toJson();
 
