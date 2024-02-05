@@ -1,8 +1,12 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2>
+
+{{-- we should manipulate the dom to show the header 
+    in the nav bar in mobile view --}}
+
+        {{-- <h2>
             {{ __("Anne, furnace.") }}
-        </h2>
+        </h2> --}}
     </x-slot>
 
             <div class="display h-[83vh] overflow-y-scroll">

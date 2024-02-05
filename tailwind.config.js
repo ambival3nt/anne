@@ -79,7 +79,7 @@ module.exports = {
                 ltblack: "hsl(0, 0%, 3%)",
             },
             fontFamily: {
-                sans: ["Nunito", ...defaultTheme.fontFamily.sans],
+                sans: ['"Albert Sans"', 'Nunito', ...defaultTheme.fontFamily.sans],
                 albert: ['"Albert Sans", sans-serif'],
                 mono: ['"Noto Sans Mono", monospace'],
             },
@@ -95,23 +95,23 @@ module.exports = {
         themes: [
             {
                 mytheme: {
-                    primary: "#38bdf8",
+                    primary: "#6199d1",
 
-                    secondary: "#7c3aed",
+                    secondary: "#153456",
 
-                    accent: "#db2777",
+                    accent: "#582f08",
 
-                    neutral: "#2a323c",
+                    neutral: "#202439",
 
-                    "base-100": "#1d232a",
+                    "base-100": "#02040D",
 
-                    info: "#0d9488",
+                    info: "#374151",
 
                     success: "#4ade80",
 
-                    warning: "#fbbd23",
+                    warning: "#f59e0b",
 
-                    error: "#fb7185",
+                    error: "#e11d48",
                 },
             },
         ],

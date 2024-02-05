@@ -1,4 +1,4 @@
-    <div class="max-w-screen-xl mx-auto">
+    <div class="container  mx-auto">
         <div class="">
             <div class="px-4 py-6 place-self-start blurb">Of course I remember!</div>
             <div class="max-h-[calc(100vh-128px)] overflow-y-scroll px-fluid-m">
@@ -14,13 +14,13 @@
                         </div>
                     </div>
                     <div class="chat-header">
-                        <span class="pr-fluid-xs">{{ $message->user->name }}</span>
-                        <time class="text-xs opacity-50">{{ $message->created_at }}</time>
+                        <span class="pr-fluid-xs text-ltblue">{{ $message->user->name }}</span>
+                        <time class="text-xs text-ltblue/60">{{ $message->created_at }}</time>
 
                     </div>
                     <div class="chat-bubble">{{ $message->message }}</div>
 
-                    <div class="chat-footer opacity-50">
+                    {{-- <div class="chat-footer opacity-50"> --}}
 
                     </div>
                 </div>
@@ -36,8 +36,8 @@
                             </div>
                         </div>
                         <div class="chat-header">
-                            <span class="pr-fluid-xs">anne</span>
-                            <time class="text-xs opacity-50">{{ $message->created_at }}</time>
+                            <span class="pr-fluid-xs text-ltblue-55">anne</span>
+                            <time class="text-xs text-ltblue-55 opacity-50">{{ $message->created_at }}</time>
 
                         </div>
                         <div class="chat-bubble">
@@ -48,7 +48,7 @@
 
                         <div class="collapse-content">
                             <div class="chat chat-end">
-                                <div class="chat-bubble bg-primary text-primary-content">
+                                <div class="chat-bubble bg-secondary">
                                     <p>{{ $message->thoughts->summary ?? 'No thoughts.' }}</p>
                                 </div>
                             </div>
