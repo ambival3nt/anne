@@ -45,7 +45,7 @@
         @endforeach
     </div>
 
-    
+
      <div class="flex justify-center items-center mt-4">
          <div class="join">
              <button type="button" class="join-item btn btn-sm btn-outline btn-primary border-ltblue-55 text-ltblue-55 fill-ltblue-55 opacity-70" wire:click="pageHandler('1')">«
