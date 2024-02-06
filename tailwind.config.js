@@ -87,37 +87,43 @@ module.exports = {
                 glow: "0px 0px 5px 0px",
             },
             gridTemplateColumns: {
-                "furnace": "minmax(12ch, 22ch) minmax(5ch, 10ch) minmax(30ch, 50vw)",
+                furnace: "minmax(12ch, 22ch) minmax(5ch, 10ch) minmax(30ch, 50vw)",
             },
         },
-    },
-    daisyui: {
-        themes: [
-            {
-                mytheme: {
-                    primary: "#6199d1",
-
-                    secondary: "#153456",
-
-                    accent: "#582f08",
-
-                    neutral: "#202439",
-
-                    "base-100": "#02040D",
-
-                    info: "#374151",
-
-                    success: "#4ade80",
-
-                    warning: "#f59e0b",
-
-                    error: "#e11d48",
-                },
-            },
-        ],
     },
     plugins: [
         //        require('@tailwindcss/forms'),
         require("daisyui"),
     ],
-};
+
+    daisyui: {
+        themes: [
+            {
+                mytheme: {
+                    primary: "#6199d1",
+                    secondary: "#153456",
+                    accent: "#582f08",
+                    neutral: "#202439",
+                    "base-100": "#02040D",
+                    info: "#060C1E",
+                    success: "#4ade80",
+                    warning: "#f59e0b",
+                    error: "#e11d48",
+                },
+            },
+            "dark",
+            "night",
+            "sunset",
+            "dracula",
+            "synthwave",
+            "dim",
+        ],
+        darkTheme: "mytheme", // name of one of the included themes for dark mode
+        base: false, // applies background color and foreground color for root element by default
+        styled: true, // include daisyUI colors and design decisions for all components
+        utils: true, // adds responsive and modifier utility classes
+        prefix: "", // prefix for daisyUI classnames (components, modifiers and responsive class names. Not colors)
+        logs: true, // Shows info about daisyUI version and used config in the console when building your CSS
+        themeRoot: ":root", // The element that receives theme color CSS variables
+    },
+}

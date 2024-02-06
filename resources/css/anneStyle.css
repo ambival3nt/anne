@@ -5,12 +5,23 @@
 
 :root {
   color-scheme: dark;
+  accent-color: hsl(210, 55%, 60%);
   --dark-bg: linear-gradient(hsl(228, 70%, 6%) 75%, hsl(0, 0%, 0%) 100%);
   --midnight: #02040D;
   --ltblue: #7599bd;
   --ltblue-55: hsl(210, 55%, 60%);
   --ltblue-75: hsl(210, 75%, 60%);
   --ltblack: #080808;
+
+  --primary: hsl(210, 55%, 60%);
+  --secondary: #153456;
+  --accent: #783f09;
+  --neutral: #202439;
+  --base-100: #02040D;
+  --info: #080808;
+  --success: #4ade80;
+  --warning: #f59e0b;
+  --error: #e11d48;
 
   --midnight-950: #02040D;
   --midnight-900: #040816;
@@ -136,18 +147,21 @@ body {
 } */
 
 .blurb {
-  padding: 0 var(--space-s);
-  padding-bottom: var(--space-s);
+  /* border: 0.5px dotted red; */
+  border-radius: 0.5em;
+  margin-top: var(--space-s);
+  margin-left: var(--space-s);
+  padding: var(--space-s);
   font-family: 'Noto Sans Mono';
   font-size: var(--step-0) important!;
-  letter-spacing: 0.8 important!;
   font-style: italic;
+  align-self: flex-start;
 }
 
 /* blue bordered boxes */
-.display {
+.bx {
   background-color: hsla(0, 0%, 0%, 0.5);
-  border: 1px solid hsl(210, 65%, 60%, 0.2);
+  border: 1px solid var(--midnight-500);
   border-radius: 0.5em;
   font-size: var(--step-0);
   font-family: "Albert Sans", 'Nunito', sans-serif;
@@ -465,6 +479,15 @@ input:-webkit-autofill:active {
     color: hsl(210, 55%, 60%);
   }
 
+
+.limiter {
+  /* max-lines: 4; */
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow-y: hidden; 
+}
+  
 
 /* .vignette {
   align-self: baseline;

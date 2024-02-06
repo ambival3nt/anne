@@ -1,4 +1,4 @@
-<div class="container  mx-auto">
+<div class="container" data-theme="mytheme">
     <div class="max-h-[calc(100dvh-64px)] overflow-y-scroll">
         <div class="px-4 py-6 place-self-start blurb">Of course I remember!</div>
         <div class="  px-fluid-m">
