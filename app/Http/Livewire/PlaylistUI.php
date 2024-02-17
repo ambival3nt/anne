@@ -86,15 +86,15 @@ class PlaylistUI extends Component
         return Person::all()->pluck('name', 'id');
     }
 
-    public function getIcon($source)
+     public function getIcon($source)
     {
         switch ($source) {
             case 'Youtube':
-                return 'resources\img\youtube-svgrepo-com.svg';
+                return 'resources/img/youtube-svgrepo-com.svg';
             case 'Spotify':
-                return 'resources\img\spotify-svgrepo-com.svg';
+                return 'resources/img/spotify-svgrepo-com.svg';
             case 'soundcloud':
-                return 'resources\img\soundcloud-svgrepo-com.svg';
+                return 'resources/img/soundcloud-svgrepo-com.svg';
             default:
                 return '0';
         }

@@ -15,15 +15,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <!-- Scripts -->
-    @vite(['resources/css/anneStyle.css'])
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
 
-    <body>
-        <div>
-            {{ $slot }}
-        </div>
-        @livewireScripts
-    </body>
+<body class="bg-midnight">
+    <div>
+        {{ $slot }}
+    </div>
+    @livewireScripts
+</body>
 </html>

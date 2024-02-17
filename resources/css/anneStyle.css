@@ -45,8 +45,8 @@
   --dusk-300: #282F3E;
   --dusk-200: #2E3442;
   --dusk-100: #353A46;
-  
-/* @link https://utopia.fyi/type/calculator?c=640,16,1.125,1280,20,1.2,5,2,&s=0.75|0.5|0.25,1.5|2|3|4|6,s-l&g=s,l,xl,12 */
+
+  /* @link https://utopia.fyi/type/calculator?c=640,16,1.125,1280,20,1.2,5,2,&s=0.75|0.5|0.25,1.5|2|3|4|6,s-l&g=s,l,xl,12 */
   --step--3: clamp(0.43rem, calc(0.39rem + 0.16vw), 0.51rem);
   --step--2: clamp(0.52rem, calc(0.45rem + 0.24vw), 0.64rem);
   --step--1: clamp(0.63rem, calc(0.52rem + 0.35vw), 0.80rem);
@@ -56,7 +56,7 @@
   --step-3: clamp(1.30rem, calc(0.90rem + 1.31vw), 1.95rem);
   --step-4: clamp(1.56rem, calc(1.02rem + 1.77vw), 2.44rem);
   --step-5: clamp(1.87rem, calc(1.15rem + 2.37vw), 3.05rem);
-  
+
   --space-3xs: clamp(0.19rem, calc(0.15rem + 0.13vw), 0.25rem);
   --space-2xs: clamp(0.38rem, calc(0.30rem + 0.25vw), 0.50rem);
   --space-xs: clamp(0.56rem, calc(0.45rem + 0.38vw), 0.75rem);
@@ -66,7 +66,7 @@
   --space-xl: clamp(2.25rem, calc(1.80rem + 1.50vw), 3.00rem);
   --space-2xl: clamp(3.00rem, calc(2.40rem + 2.00vw), 4.00rem);
   --space-3xl: clamp(4.50rem, calc(3.60rem + 3.00vw), 6.00rem);
-  
+
   --space-3xs-2xs: clamp(0.19rem, calc(0.00rem + 0.63vw), 0.50rem);
   --space-2xs-xs: clamp(0.38rem, calc(0.15rem + 0.75vw), 0.75rem);
   --space-xs-s: clamp(0.56rem, calc(0.30rem + 0.88vw), 1.00rem);
@@ -79,32 +79,29 @@
   --space-s-l: clamp(0.75rem, calc(0.00rem + 2.50vw), 2.00rem);
 }
 
-*, ::before, ::after {
+*,
+::before,
+::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
 html {
-  font-family: "Albert Sans", 'Nunito', sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+  font-family: 'Albert Sans', 'Nunito', sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   font-weight: 300;
 }
 
-h1,h2,h3,h4,h5,h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-size: inherit;
   font-weight: inherit;
-}
-
-.welcome a {
-  text-decoration: none;
-  color: var(--ltblue);
-  cursor: pointer;
-}
-
-.welcome a:hover {
-  color: hsl(210, 65%, 60%);
 }
 
 
@@ -118,9 +115,19 @@ svg {
 
 body {
   background-color: var(--midnight);
-  font-family: "Albert Sans", 'Nunito', sans-serif;
+  font-family: 'Albert Sans', 'Nunito', sans-serif;
   display: flex;
   flex-direction: column;
+}
+
+.welcome a {
+  text-decoration: none;
+  color: var(--ltblue);
+  cursor: pointer;
+}
+
+.welcome a:hover {
+  color: hsl(210, 65%, 60%);
 }
 
 /* deals with min-h-screen */
@@ -153,7 +160,7 @@ body {
   margin-left: var(--space-s);
   padding: var(--space-s);
   font-family: 'Noto Sans Mono';
-  font-size: var(--step-0) important!;
+  font-size: var(--step-0) !important;
   font-style: italic;
   align-self: flex-start;
 }
@@ -164,7 +171,7 @@ body {
   border: 1px solid var(--midnight-500);
   border-radius: 0.5em;
   font-size: var(--step-0);
-  font-family: "Albert Sans", 'Nunito', sans-serif;
+  font-family: 'Albert Sans', 'Nunito', sans-serif;
   font-weight: 300;
   line-height: 1.5;
   color: var(--ltblue);
@@ -216,11 +223,11 @@ body {
 } */
 
 /* .furnace { */
-  /* display: grid; */
-  /* grid-template-columns: minmax(12ch, 22ch) minmax(5ch, 10ch) minmax(30ch, 50vw); */
-  /* grid-template-rows: auto; */
-  /* max-height: 100dvh; */
-  /* color: hsl(210, 25%, 60%); */
+/* display: grid; */
+/* grid-template-columns: minmax(12ch, 22ch) minmax(5ch, 10ch) minmax(30ch, 50vw); */
+/* grid-template-rows: auto; */
+/* max-height: 100dvh; */
+/* color: hsl(210, 25%, 60%); */
 /* } */
 
 /* .furnace>div {
@@ -279,11 +286,11 @@ body {
   margin-right: var(--space-m);
 }
 
-.modal {
+.loginModal {
   justify-content: center;
 }
 
-.modal>h1 {
+.loginModal>h1 {
   font-size: var(--step-3);
   font-weight: 400;
   margin: 1rem 0;
@@ -302,13 +309,13 @@ h1~div {
   margin: 1em 0;
 }
 
-form>div:last-of-type {
+/* form>div:last-of-type {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-}
+} */
 
-.login-btn {
+/* .login-btn {
   margin-top: 0.75em;
   display: inline-flex;
   justify-content: center;
@@ -318,20 +325,20 @@ form>div:last-of-type {
   background-color: var(--ltblue);
   color: hsl(0, 0%, 0%, 0.7);
   text-transform: uppercase;
-  font-family: "Albert Sans", 'Nunito', sans-serif;
+  font-family: 'Albert Sans', 'Nunito', sans-serif;
   font-size: var(--step-0);
   font-weight: 600;
   transition: all 0.2s ease-in-out;
-}
+} */
 
-.login-btn:hover {
+/* .login-btn:hover {
   background-color: hsl(210, 55%, 60%);
 }
 
 .login-btn:focus {
-    outline: hsl(210, 45%, 60%) solid 2px;
-    outline-offset: 1px;
-  }
+  outline: hsl(210, 45%, 60%) solid 2px;
+  outline-offset: 1px;
+} */
 
 .forgot {
   font-size: var(--step--1) !important;
@@ -366,20 +373,22 @@ form>div:last-of-type {
   text-transform: uppercase;
   font-size: var(--step-0);
 }
-.cancel-btn:hover {
-    background-color: hsl(0, 0%, 0%, 0.6);
-    color: hsl(210, 75%, 60%);
-  }
-.cancel-btn:focus {
-    outline: hsl(210, 45%, 60%, 0.5) solid 2px;
-    outline-offset: 1px;
-  }
 
-.input-label {
+.cancel-btn:hover {
+  background-color: hsl(0, 0%, 0%, 0.6);
+  color: hsl(210, 75%, 60%);
+}
+
+.cancel-btn:focus {
+  outline: hsl(210, 45%, 60%, 0.5) solid 2px;
+  outline-offset: 1px;
+}
+
+/* .input-label {
   display: block;
   margin-bottom: var(--space-3xs);
   font-size: var(--step-1);
-}
+} */
 
 .input-field {
   display: block;
@@ -396,11 +405,11 @@ form>div:last-of-type {
 }
 
 .input-field:focus {
-    outline: 2px solid hsl(210, 45%, 60%);
-    outline-offset: 1px;
-  }
+  outline: 2px solid hsl(210, 45%, 60%);
+  outline-offset: 1px;
+}
 
-
+/* 
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
@@ -409,7 +418,7 @@ input:-webkit-autofill:active {
   -webkit-text-fill-color: hsl(210, 35%, 60%);
   background-color: #02040D;
   box-shadow: inset 0 0 20px 20px #02040D;
-} 
+}  */
 
 
 .checkbox-wrapper input[type="checkbox"] {
@@ -471,13 +480,14 @@ input:-webkit-autofill:active {
   transition-delay: 0.15s;
 }
 
-.remember_me {
+
+/* .remember_me {
   font-size: var(--step-0);
   cursor: pointer;
 }
 .remember_me:hover {
     color: hsl(210, 55%, 60%);
-  }
+  } */
 
 
 .limiter {
@@ -485,9 +495,9 @@ input:-webkit-autofill:active {
   display: -webkit-box;
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
-  overflow-y: hidden; 
+  overflow-y: hidden;
 }
-  
+
 
 /* .vignette {
   align-self: baseline;
