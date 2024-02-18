@@ -5,6 +5,7 @@ namespace App\Core\OpenAI;
 use App\Core\config\CommonKnowledge;
 use App\Core\Memory\messageHistoryHandler;
 use App\Core\OpenAI\Prompts\analyzeUserInput;
+use App\Core\VectorDB\ChromaCore;
 use App\Core\VectorDB\PineconeCore;
 use App\Core\VectorDB\VectorQueryReturn;
 use App\Core\YouTube\VideoQuery;
@@ -41,6 +42,7 @@ class OpenAICore
 
         $client = OpenAI::client(getenv('OPENAI_API_KEY'));
 
+        $summary = '';
         $promptRemoveTag = null;
 
         // Triggers for anne to respond
@@ -74,26 +76,44 @@ class OpenAICore
 
                 //get vector for user's message
                 $userEmbed = $this->buildEmbedding($promptRemoveTag, $client)->embeddings[0]->embedding;
+//                $outstring = json_encode($userEmbed, 128);
+//                for ($i = 0; $i < strlen($outstring); $i= $i + 2000){
+//                    $message->reply(substr($outstring, $i, 2000));
+//                }
+
 
                 //add any preload prompts etc
                 $promptWithPreloads = $prompt . $promptRemoveTag;
+//                $outstring = json_encode($promptWithPreloads, 128);
+//                for ($i = 0; $i < strlen($outstring); $i= $i + 2000){
+//                    $message->reply(substr($outstring, $i, 2000));
+//                }
+
 
                 // Query pinecone with the user embedding
-                $vectorQueryResult = new PineconeCore;
-                $resultArray = $vectorQueryResult->query($userEmbed);
+                $vectorQueryResult = new ChromaCore;
 
-                //parse vectors into prompt
-                $vectorQuery = VectorQueryReturn::addHistoryFromVectorQuery($resultArray, $message, $client, $this) ?? "";
+                $resultArray = $vectorQueryResult->query($userEmbed, $message) ?? null;
 
-                //prompt with history summary attached
-                $promptWithVectors = $vectorQuery['result'];
+//                $outstring = json_encode($resultArray, 128);
+//                for ($i = 0; $i < strlen($outstring); $i= $i + 2000){
+//                    $message->reply(substr($outstring, $i, 2000));
+//                }
 
-                //summary alone for db later
-                $summary = $vectorQuery['summary'];
+                if(data_get($resultArray, 'data', null)) {
+                    //parse vectors into prompt
+                    $vectorQuery = VectorQueryReturn::addHistoryFromVectorQuery($resultArray, $message, $client, $this) ?? "";
 
+                    //prompt with history summary attached
+                    $promptWithVectors = $vectorQuery['result'];
+
+                    //summary alone for db later
+                    $summary = $vectorQuery['summary'] ?? '';
+
+                    $promptWithPreloads .= "-----\n" . $promptWithVectors;
+                }
                 $userName = $message->author->displayname;
 
-                $promptWithPreloads .= "-----\n" . $promptWithVectors;
                 $promptWithPreloads .= "\n $userName: $promptRemoveTag\n\n
 
 
@@ -158,7 +178,7 @@ class OpenAICore
 //                $cosineSimilarity = Distance::cosineSimilarity($userEmbed, $anneEmbed);
 
                 //send embeds to vector db
-                $this->sendToPineconeAPI($userEmbed, ['id' => (string)$messageModel->id], (string)$person->id, $anneEmbed);
+                $this->sendToPineconeAPI($userEmbed, ['id' => (string)$messageModel->id], (string)$person->id, $anneEmbed, $promptRemoveTag,$responsePath);
 
                 //init Anne's message model
                 $anneMessage = new AnneMessages();
@@ -179,7 +199,7 @@ class OpenAICore
                 $thoughtModel = $thoughtModel->create([
                     'message_id' => $messageModel->id,
                     'response_id' => $anneMessage->id,
-                    'summary' => $summary,
+                    'summary' =>  $summary ? $summary : '',
                 ]);
 
             } catch (\Exception $e) {
@@ -196,6 +216,8 @@ class OpenAICore
             return $message->reply($responsePath);
         } elseif ((str_starts_with(strtolower($message->content), "anne show me ")) && !$message->author->bot) {
 
+
+//            TODO: Save to gallery for frontend
             $result = $client->images()->create([
                 'prompt' => substr($message->content, 12),
                 'n' => 1,
@@ -234,16 +256,18 @@ class OpenAICore
 
     }
 
-    public function sendToPineconeAPI($vector, $data = null, $discordUserId, $anneEmbed)
+    public function sendToPineconeAPI($vector, $data = null, $discordUserId, $anneEmbed, $userMessage, $anneMessage)
     {
 
+Log::debug(json_encode([$data, $discordUserId,$anneEmbed],128));
         try {
             if (!$data) {
                 return ['success' => false, 'message' => "No data found. My bad."];
             }
-            $jobData = UpsertToPineconeJob::dispatch($vector, $data['id'], $discordUserId, $anneEmbed);
+//            $jobData = UpsertToPineconeJob::dispatch($vector, $data['id'], $discordUserId, $anneEmbed);
+            $jobData = new ChromaCore();
 
-
+            $jobData = $jobData->upsert($vector, $data['id'], $discordUserId, $anneEmbed, $userMessage, $anneMessage);
             return [
                 'success' => true,
                 'data' => $jobData,

@@ -9,6 +9,7 @@
         "ext-curl": "*",
         "ext-dom": "*",
         "ext-libxml": "*",
+        "codewithkyrian/chromadb-php": "^0.1.0",
         "fabpot/goutte": "^4.0",
         "google/apiclient": "^2.12.1",
         "guzzlehttp/guzzle": "^7.2",

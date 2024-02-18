@@ -25,7 +25,7 @@ class VectorQueryReturn
         $priorMessageData = [];
         $priorMessageUser = '';
         $priorMessageOutput = '';
-        $stupidArray = [];
+
         try {
 
             //only use vectors with score above the threshhold (hardcoded to .79 for now, this will eventually move to front end)
@@ -204,7 +204,7 @@ class VectorQueryReturn
         $userEmbed = $this->openAICore->buildEmbedding($promptRemoveTag, $client)->embeddings[0]->embedding;
 
         // Query pinecone with the user embedding
-        $vectorQueryResult = new PineconeCore;
+        $vectorQueryResult = new ChromaCore();
         $vectorQueryResult = $vectorQueryResult->query($userEmbed);
 
         //format the output

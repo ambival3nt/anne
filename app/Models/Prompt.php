@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Core\config\CommonKnowledge;
 use App\Core\Memory\messageHistoryHandler;
 use App\Core\OpenAI\OpenAICore;
+use App\Core\VectorDB\ChromaCore;
 use App\Core\VectorDB\PineconeCore;
 use App\Core\VectorDB\VectorQueryReturn;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -172,7 +173,7 @@ class Prompt extends Model
         $userEmbed = $openAICore->buildEmbedding('What is a cactus cat', $client)->embeddings[0]->embedding;
 
         // Query pinecone with the user embedding
-        $vectorQueryResult = new PineconeCore;
+        $vectorQueryResult = new ChromaCore();
         $vectorQueryResult = $vectorQueryResult->query($userEmbed);
 
         $vectorPrompt = VectorQueryReturn::addHistoryFromVectorQuery($vectorQueryResult, null, $client);
