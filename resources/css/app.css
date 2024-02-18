@@ -2,39 +2,101 @@
 @tailwind components;
 @tailwind utilities;
 
-/* this doesnt work here */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
-input:-webkit-autofill:active {
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: hsl(210, 35%, 60%);
-  background-color: #02040D;
-  box-shadow: inset 0 0 20px 20px #02040D;
+@layer base {
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: hsl(210, 35%, 60%);
+    background-color: #02040D;
+    box-shadow: inset 0 0 20px 20px #02040D;
+  }
+
+  ::selection {
+    background-color: theme('colors.amber.950');
+    color: theme('colors.gray.300');
+    /* --webkit-text-fill-color: theme('colors.black'); */
+    /* --webkit-text-stroke-color: theme('colors.black'); */
+    /* --webkit-text-stroke-width: 2px; */
+    /* offset-x | offset-y | blur-radius | color */
+    /* text-shadow: 1px 1px 0px theme('colors.black'); */
+  }
+
+  input[type="checkbox"] {
+    appearance: none;
+    background-color: transparent;
+    margin: 0;
+    font: inherit;
+    color: currentColor;
+    width: 1em;
+    height: 1em;
+    border: 1px solid currentColor;
+    border-radius: 0.3em;
+    transform: translateY(-0.075em);
+    display: grid;
+    place-content: center;
+  }
+
+  input[type="checkbox"]:checked {
+    border: 1px solid transparent;
+  }
+
+  input[type="checkbox"]::before {
+    content: "";
+    width: 0.65em;
+    height: 0.65em;
+    transform: scale(0);
+    transition: 120ms transform ease-in-out;
+    box-shadow: inset 1em 1em theme('colors.ltblue.75');
+    transform-origin: center;
+    transform-origin: bottom left;
+    clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  }
+
+  input[type="checkbox"]:checked::before {
+    transform: scale(1);
+  }
 }
 
+/* bordered boxes */
+.bx {
+  background-color: hsla(0, 0%, 0%, 0.5);
+  border: 1px solid theme('colors.midnight.500');
+  border-radius: 0.5em;
+  font-size: var(--step-0);
+  font-family: theme('fontFamily.albert');
+  font-weight: 300;
+  line-height: 1.5;
+  color: theme('colors.ltblue.DEFAULT');
+  padding: theme('spacing.fluid-s-m');
+  overflow-y: auto;
+  filter: brightness(1);
+  transition-property: filter;
+  transition-timing-function: ease-in-out;
+}
+
+.bx:hover {
+  filter: brightness(1.2);
+  transition-duration: 400ms;
+  transition-delay: 20ms;
+}
 
 .vignette {
   background-color: hsl(210, 65%, 60%, 0.8);
   background-image: linear-gradient(265deg,
-        hsl(228deg 71% 7%) 0%,
-        hsl(226deg 68% 16%) 4%,
-        hsl(222deg 66% 25%) 9%,
-        hsl(219deg 64% 33%) 16%,
-        hsl(216deg 60% 42%) 24%,
-        hsl(213deg 57% 51%) 36%,
-        hsl(210deg 55% 60%) 56%,
-        hsl(213deg 57% 51%) 82%,
-        hsl(216deg 60% 42%) 92%,
-        hsl(219deg 64% 33%) 97%,
-        hsl(222deg 66% 25%) 99%,
-        hsl(226deg 68% 16%) 100%,
-        hsl(228deg 71% 7%) 100%);
-}
-
-.gradient {
-    background: conic-gradient(from 144deg, #203965 0%, #218fbe 32%, #73b1e7 70%, rgba(32,57,101,1) 99%) no-repeat;
-border-radius: 8px;
-padding: 9px;
-box-sizing: border-box;
+      hsl(228deg 71% 7%) 0%,
+      hsl(226deg 68% 16%) 4%,
+      hsl(222deg 66% 25%) 9%,
+      hsl(219deg 64% 33%) 16%,
+      hsl(216deg 60% 42%) 24%,
+      hsl(213deg 57% 51%) 36%,
+      hsl(210deg 55% 60%) 56%,
+      hsl(213deg 57% 51%) 82%,
+      hsl(216deg 60% 42%) 92%,
+      hsl(219deg 64% 33%) 97%,
+      hsl(222deg 66% 25%) 99%,
+      hsl(226deg 68% 16%) 100%,
+      hsl(228deg 71% 7%) 100%);
 }
