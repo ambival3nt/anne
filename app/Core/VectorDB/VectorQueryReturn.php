@@ -28,7 +28,7 @@ class VectorQueryReturn
 
         try {
 
-            //only use vectors with score above the threshhold (hardcoded to .79 for now, this will eventually move to front end)
+            //only use vectors with score above the threshold (hardcoded to .79 for now, this will eventually move to front end)
             foreach ($resultArray['matches'] as $result) {
                 if ($result->score < 0.82) {
                     continue;

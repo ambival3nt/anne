@@ -15,6 +15,7 @@ use App\Models\AnneMessages;
 use App\Models\Messages;
 use App\Models\Person;
 use App\Models\ThoughtSummary;
+use App\Utilities\Stringscord;
 use Discord\Builders\MessageBuilder;
 use Discord\Discord;
 use Discord\Parts\Channel\Message;
@@ -93,16 +94,22 @@ class OpenAICore
                 // Query pinecone with the user embedding
                 $vectorQueryResult = new ChromaCore;
 
+//                $message->reply(json_encode($vectorQueryResult, 128));
+
+
+
                 $resultArray = $vectorQueryResult->query($userEmbed, $message) ?? null;
 
-//                $outstring = json_encode($resultArray, 128);
-//                for ($i = 0; $i < strlen($outstring); $i= $i + 2000){
-//                    $message->reply(substr($outstring, $i, 2000));
-//                }
+
+
 
                 if(data_get($resultArray, 'data', null)) {
                     //parse vectors into prompt
                     $vectorQuery = VectorQueryReturn::addHistoryFromVectorQuery($resultArray, $message, $client, $this) ?? "";
+
+                    $message->reply('hi im in the thingg');
+
+                    new Stringscord($message, json_encode($vectorQuery, 128));
 
                     //prompt with history summary attached
                     $promptWithVectors = $vectorQuery['result'];

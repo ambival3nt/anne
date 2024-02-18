@@ -15,7 +15,9 @@ class ChromaCore
 {
   public function initClient(){
       $chromaDB = ChromaDB::factory()
-          ->withHost('https://shaggy-flowers-film.loca.lt');
+          ->withHost('https://rich-items-greet.loca.lt/');
+
+
       return $chromaDB;
 
 
@@ -31,7 +33,11 @@ class ChromaCore
 
        return $this->initClient()->connect(true)->createCollection(
            name: getenv('CHROMA_COLLECTION_NAME'),
+           metadata: [
+               'hnsw:space'=>'cosine',
+           ],
            embeddingFunction: $embedder,
+
        );
 
   }
@@ -132,6 +138,8 @@ class ChromaCore
         }
 
         $result = [];
+
+
         $length = sizeof($queryResponse->documents[0]);
 
 
@@ -141,11 +149,12 @@ class ChromaCore
                 'distances' => $queryResponse->distances[0][$i],
                 'metadatas' => $queryResponse->metadatas[0][$i],
             ];
+//            $message->reply(json_encode($result[$i]));
         }
 
 
 
-        return $result;
+        return ['data'=>$result];
     }
 
 }
