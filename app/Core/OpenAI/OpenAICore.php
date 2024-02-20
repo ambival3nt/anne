@@ -77,39 +77,24 @@ class OpenAICore
 
                 //get vector for user's message
                 $userEmbed = $this->buildEmbedding($promptRemoveTag, $client)->embeddings[0]->embedding;
-//                $outstring = json_encode($userEmbed, 128);
-//                for ($i = 0; $i < strlen($outstring); $i= $i + 2000){
-//                    $message->reply(substr($outstring, $i, 2000));
-//                }
-
 
                 //add any preload prompts etc
                 $promptWithPreloads = $prompt . $promptRemoveTag;
-//                $outstring = json_encode($promptWithPreloads, 128);
-//                for ($i = 0; $i < strlen($outstring); $i= $i + 2000){
-//                    $message->reply(substr($outstring, $i, 2000));
-//                }
 
 
                 // Query pinecone with the user embedding
                 $vectorQueryResult = new ChromaCore;
 
-//                $message->reply(json_encode($vectorQueryResult, 128));
-
-
-
                 $resultArray = $vectorQueryResult->query($userEmbed, $message) ?? null;
-
-
 
 
                 if(data_get($resultArray, 'data', null)) {
                     //parse vectors into prompt
-                    $vectorQuery = VectorQueryReturn::addHistoryFromVectorQuery($resultArray, $message, $client, $this) ?? "";
+                    $vectorQuery = VectorQueryReturn::addHistoryFromVectorQuery($resultArray['data'], $message, $client, $this) ?? "";
 
-                    $message->reply('hi im in the thingg');
 
-                    new Stringscord($message, json_encode($vectorQuery, 128));
+
+//                    new Stringscord($message, json_encode($vectorQuery, 128));
 
                     //prompt with history summary attached
                     $promptWithVectors = $vectorQuery['result'];
@@ -121,26 +106,28 @@ class OpenAICore
                 }
                 $userName = $message->author->displayname;
 
-                $promptWithPreloads .= "\n $userName: $promptRemoveTag\n\n
 
+                //example - 'ambi: thing ambi just said'
+               //followed by
+                // Anne: '
+                // this is left open on purpose so she completes it.
+                $promptWithPreloads .= "\n $userName: $promptRemoveTag\n\n
 
 
 
                 Anne: ";
 
+            // calls functions if appropriate
                 $functionCaller = '';
+
                 $functionCaller = $this->getFunctions($promptRemoveTag, $client) ?? [];
 
-
-
-
                 if (data_get($functionCaller, 'message', false) !== false) {
-//                    $message->channel->sendMessage('i hit the thing ffs');
+
                     return $message->channel->sendMessage($functionCaller);
                 }
 
                 //get OpenAI response
-
                 $result = $client->completions()->create([
                         'model' => 'gpt-3.5-turbo-instruct',
                         'prompt' => $promptWithPreloads,
@@ -156,6 +143,7 @@ class OpenAICore
                     ]
                 );
 
+                //this is her reply
                 $responsePath = $result['choices'][0]['text'];
 
                 //update person model
@@ -178,6 +166,13 @@ class OpenAICore
                     'user_id' => (string)$person->id,
                     'message' => $promptRemoveTag,
                     'response' => $responsePath
+                ]);
+
+                $messageModelAnne = new Messages();
+                $messageModelAnne = $messageModelAnne->create([
+                    'user_id' => -1,
+                    'message' => $responsePath,
+                    'response' => null,
                 ]);
 
 
@@ -265,8 +260,6 @@ class OpenAICore
 
     public function sendToPineconeAPI($vector, $data = null, $discordUserId, $anneEmbed, $userMessage, $anneMessage)
     {
-
-Log::debug(json_encode([$data, $discordUserId,$anneEmbed],128));
         try {
             if (!$data) {
                 return ['success' => false, 'message' => "No data found. My bad."];

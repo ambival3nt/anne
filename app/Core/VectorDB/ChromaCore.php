@@ -15,7 +15,7 @@ class ChromaCore
 {
   public function initClient(){
       $chromaDB = ChromaDB::factory()
-          ->withHost('https://rich-items-greet.loca.lt/');
+          ->withHost('https://tired-rats-clean.loca.lt');
 
 
       return $chromaDB;
@@ -64,6 +64,7 @@ class ChromaCore
                     'type' => "user_message",
                     'anne' => "0",
                     'dateTime' => $dateTime,
+                    'id' => $id ?? 'FUCK',
                 ];
 
 
@@ -75,6 +76,7 @@ class ChromaCore
                         'type' => "anne_message",
                         'anne' => "1",
                         'dateTime' => $dateTime,
+                        'id' => $id + 1 ?? 'FUCK',
                     ];
 
 
@@ -90,7 +92,7 @@ class ChromaCore
           $collection = $chroma->getCollection(getenv('CHROMA_COLLECTION_NAME'), $embedding);
 
           //add passed in data to the collection (I think you can pass it all at once which means probably not but fuck it)
-          $collection->add(ids:[(string)$id, (string)($id+1)],documents:[(string)$userMessage, (string)$anneMessage], metadatas: [$userMetadata, $anneMetadata]);
+          $collection->add(ids:[(string)$id, (string)($id +1)],documents:[(string)$userMessage, (string)$anneMessage], metadatas: [$userMetadata, $anneMetadata]);
       }catch(Exception $e){
           $success=false;
           Log::debug('Exception thrown on L' . __LINE__ . ' in ' . __METHOD__ . ' in ' . __FILE__);
@@ -120,6 +122,7 @@ class ChromaCore
             //grab collection from env
             if ($chroma) {
                 $collection = $chroma->connect(true)->getCollection(getenv('CHROMA_COLLECTION_NAME'));
+
                 if ($collection) {
                     $queryResponse = $collection->query(
 
@@ -143,14 +146,14 @@ class ChromaCore
         $length = sizeof($queryResponse->documents[0]);
 
 
-        for($i=0; $i<$length; $i++){
-            $result[$i] = [
-                'documents' => $queryResponse->documents[0][$i],
-                'distances' => $queryResponse->distances[0][$i],
-                'metadatas' => $queryResponse->metadatas[0][$i],
-            ];
-//            $message->reply(json_encode($result[$i]));
-        }
+                for ($i = 0; $i < $length; $i++) {
+                    $result[$i] = [
+                        'documents' => $queryResponse->documents[0][$i],
+                        'distances' => $queryResponse->distances[0][$i],
+                        'metadatas' => $queryResponse->metadatas[0][$i],
+                    ];
+            //            $message->reply(json_encode($result[$i]));
+                }
 
 
 
