@@ -15,7 +15,7 @@ class ChromaCore
 {
   public function initClient(){
       $chromaDB = ChromaDB::factory()
-          ->withHost('https://tired-rats-clean.loca.lt');
+          ->withHost(getenv('CHROMA_HOST'));
 
 
       return $chromaDB;

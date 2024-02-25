@@ -179,42 +179,48 @@ public function modelCommands($input, $user){
       $prompt = "
         You are an emotion and sentiment analyzer. You will be given a message and asked to analyze it, and rate the intensity of a given list of emotions.\n
         All scores should be from 0-100, where 0 is the least intense and 100 is the most intense.\n
-        Here are a few examples of inputs as well as the expected output:\n\n
-        -----\n
-        User:\n
-        I'm so happy to see you, it's been a long time since we hung out.\n
-        Response:\n
-        Happy:          91\n
-        Sad:              9\n
-        Angry:          0\n
-        Fear:             0\n
-        Funny:          9\n
-        Interesting:      30\n
-        Polite:         92\n
-        Rude:             0\n
-        Friendly:       89\n
-        Hostile:          95\n
-        -----\n\n
-        User:\n
-        god i hate that guy, why do we even let him hang out here? he's worse than a cold hotdog on a cold day\n
-        Response:\n
-         Happy:          11\n
-        Sad:              60\n
-        Angry:          80\n
-        Fear:             11\n
-        Funny:          50\n
-        Interesting:      50\n
-        Polite:         5\n
-        Rude:             90\n
-        Friendly:       17\n
-        Hostile:          93\n
-        -----\n\n
-        User:
-        $input\n
-        Response:\n
-        ";
+        Score on the following:\n
+        Happy, Sad, Angry, Fear, Funny, Interesting, Polite, Rude, Friendly, Hostile\n
+        Here is the message:\n" .
+        $input;
+//        Here are a few examples of inputs as well as the expected output:\n\n
+//        -----\n
+//        User:\n
+//        I'm so happy to see you, it's been a long time since we hung out.\n
+//        Response:\n
+//        Happy:          91\n
+//        Sad:              9\n
+//        Angry:          0\n
+//        Fear:             0\n
+//        Funny:          9\n
+//        Interesting:      30\n
+//        Polite:         92\n
+//        Rude:             0\n
+//        Friendly:       89\n
+//        Hostile:          95\n
+//        -----\n\n
+//        User:\n
+//        god i hate that guy, why do we even let him hang out here? he's worse than a cold hotdog on a cold day\n
+//        Response:\n
+//         Happy:          11\n
+//        Sad:              60\n
+//        Angry:          80\n
+//        Fear:             11\n
+//        Funny:          50\n
+//        Interesting:      50\n
+//        Polite:         5\n
+//        Rude:             90\n
+//        Friendly:       17\n
+//        Hostile:          93\n
+//        -----\n\n
+//        User:
+//        $input\n
+//        Response:\n
+//        ";
+        $client = OpenAI::client(getenv('OPENAI_API_KEY'));
 
-      $result = $client->completions()->create(['model' => 'text-curie-001',
+      $result = $client->completions()->create([
+              'model' => 'gpt-3.5-turbo-instruct',
                 'prompt' => $prompt,
 //                        'top_p' => .25,
                 'temperature' => 1,

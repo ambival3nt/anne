@@ -40,8 +40,9 @@ class VectorQueryReturn
                 $id = data_get($result, 'metadatas.id', null);
                 try {
                     if ($id) {
-                        $priorMessageData = Messages::find($id-1) ?? null;
+                        $priorMessageData = AnneMessages::where('input_id', $id)->userMessage->get() ?? null;
                         if ($priorMessageData) {
+                        $message->reply(json_encode($priorMessageData));
                             $priorMessageData = $priorMessageData->toArray() ?? [];
                             $priorMessageOutput = trim($priorMessageData['message']) ?? 'Could not load prior user message from anne message.';
                             $priorMessageUser = Person::find(trim($priorMessageData['user_id']))->name ?? '';
@@ -66,6 +67,8 @@ class VectorQueryReturn
                 Log::channel('db')->debug('Missing messageData on id: ' . $id);
                 continue;
             }
+
+            $message->reply(json_encode($priorMessageData,128));
 
             $messageOutput = trim($messageData['message']) ?? 'Could not load message.';
             $user = $isAnne ? "You" : (new Person)->where('id', $messageData['user_id'])->first()->name ?? '??';
@@ -120,6 +123,7 @@ class VectorQueryReturn
 
         //if there are memories
         if(strlen($vectorPrompt)>0) {
+            $message->reply('i have chat history! it is: ' . $vectorPrompt);
 
             $summaryPrompt .=
                 "Here is the chat history you are summarizing:\n\n
