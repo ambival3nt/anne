@@ -39,7 +39,19 @@ class OpenAICore
     public function query($message, $discord, $mention = null, $reply = null, $lastMessage)
     {
 
-        $client = OpenAI::client(getenv('OPENAI_API_KEY'));
+//        $client = OpenAI::client(getenv('OPENAI_API_KEY'));
+
+        $client = OpenAI::factory()
+            ->withBaseUri('https://anne.loca.lt/v1') // default: api.openai.com/v1
+            ->withHttpClient($client = new \GuzzleHttp\Client([])) // default: HTTP client found using PSR-18 HTTP Client Discovery
+//            ->withHttpHeader('X-My-Header', 'foo')
+//            ->withQueryParam('my-param', 'bar')
+            ->withStreamHandler(fn (RequestInterface $request): ResponseInterface => $client->send($request, [
+                'stream' => true // Allows to provide a custom stream handler for the http client.
+            ]))
+            ->make();
+
+
 
         $promptRemoveTag = null;
 
@@ -71,30 +83,30 @@ class OpenAICore
             // AnneActions::checkForAction($promptRemoveTag, $message);
 
             try {
-
-                //get vector for user's message
-                $userEmbed = $this->buildEmbedding($promptRemoveTag, $client)->embeddings[0]->embedding;
-
-                //add any preload prompts etc
-                $promptWithPreloads = $prompt . $promptRemoveTag;
-
-                // Query pinecone with the user embedding
-                $vectorQueryResult = new PineconeCore;
-                $resultArray = $vectorQueryResult->query($userEmbed);
-
-                //parse vectors into prompt
-                $vectorQuery = VectorQueryReturn::addHistoryFromVectorQuery($resultArray, $message, $client, $this) ?? "";
-
-                //prompt with history summary attached
-                $promptWithVectors = $vectorQuery['result'];
-
-                //summary alone for db later
-                $summary = $vectorQuery['summary'];
-
+//
+//                //get vector for user's message
+//                $userEmbed = $this->buildEmbedding($promptRemoveTag, $client)->embeddings[0]->embedding;
+//
+//                //add any preload prompts etc
+//                $promptWithPreloads = $prompt . $promptRemoveTag;
+//
+//                // Query pinecone with the user embedding
+//                $vectorQueryResult = new PineconeCore;
+//                $resultArray = $vectorQueryResult->query($userEmbed);
+//
+//                //parse vectors into prompt
+//                $vectorQuery = VectorQueryReturn::addHistoryFromVectorQuery($resultArray, $message, $client, $this) ?? "";
+//
+//                //prompt with history summary attached
+//                $promptWithVectors = $vectorQuery['result'];
+//
+//                //summary alone for db later
+//                $summary = $vectorQuery['summary'];
+//
                 $userName = $message->author->displayname;
-
-                $promptWithPreloads .= "-----\n" . $promptWithVectors;
-                $promptWithPreloads .= "\n $userName: $promptRemoveTag\n\n
+//
+//                $promptWithPreloads .= "-----\n" . $promptWithVectors;
+                $promptWithPreloads = "\n $userName: $promptRemoveTag\n\n
 
 
 
@@ -102,20 +114,23 @@ class OpenAICore
                 Anne: ";
 
                 $functionCaller = '';
-                $functionCaller = $this->getFunctions($promptRemoveTag, $client) ?? [];
-
-
-
-
-                if (data_get($functionCaller, 'message', false) !== false) {
-//                    $message->channel->sendMessage('i hit the thing ffs');
-                    return $message->channel->sendMessage($functionCaller);
-                }
+//                $functionCaller = $this->getFunctions($promptRemoveTag, $client) ?? [];
+//
+//
+//
+//
+//                if (data_get($functionCaller, 'message', false) !== false) {
+////                    $message->channel->sendMessage('i hit the thing ffs');
+//                    return $message->channel->sendMessage($functionCaller);
+//                }
 
                 //get OpenAI response
 
-                $result = $client->completions()->create([
-                        'model' => 'gpt-3.5-turbo-instruct',
+
+
+                $result = $client->chat()->create([
+//                        'model' => 'mistral-7b-instruct-v0.1.Q4_0.gguf',
+//                        'model' => 'mistral-7b-instruct',
                         'prompt' => $promptWithPreloads,
                         'temperature' => 0.9,
                         'max_tokens' => 700,
@@ -129,7 +144,9 @@ class OpenAICore
                     ]
                 );
 
-                $responsePath = $result['choices'][0]['text'];
+//          $message->reply(json_encode($result));
+
+                $responsePath = $result['choices'][0]['message'];
 
                 //update person model
 
@@ -144,8 +161,8 @@ class OpenAICore
                 //init message model
                 $messageModel = new Messages();
 
-                //build anne's embedding for pinecone
-                $anneEmbed = $this->buildEmbedding($responsePath, $client)->embeddings[0]->embedding;
+//                //build anne's embedding for pinecone
+//                $anneEmbed = $this->buildEmbedding($responsePath, $client)->embeddings[0]->embedding;
 
                 $messageModel = $messageModel->create([
                     'user_id' => (string)$person->id,
@@ -158,7 +175,7 @@ class OpenAICore
 //                $cosineSimilarity = Distance::cosineSimilarity($userEmbed, $anneEmbed);
 
                 //send embeds to vector db
-                $this->sendToPineconeAPI($userEmbed, ['id' => (string)$messageModel->id], (string)$person->id, $anneEmbed);
+//                $this->sendToPineconeAPI($userEmbed, ['id' => (string)$messageModel->id], (string)$person->id, $anneEmbed);
 
                 //init Anne's message model
                 $anneMessage = new AnneMessages();
@@ -174,13 +191,13 @@ class OpenAICore
 
 
                 // Save anne's summarized version of the history
-                $thoughtModel = new ThoughtSummary();
-
-                $thoughtModel = $thoughtModel->create([
-                    'message_id' => $messageModel->id,
-                    'response_id' => $anneMessage->id,
-                    'summary' => $summary,
-                ]);
+//                $thoughtModel = new ThoughtSummary();
+//
+//                $thoughtModel = $thoughtModel->create([
+//                    'message_id' => $messageModel->id,
+//                    'response_id' => $anneMessage->id,
+//                    'summary' => $summary,
+//                ]);
 
             } catch (\Exception $e) {
                 Log::channel('db')->debug($e->getMessage());

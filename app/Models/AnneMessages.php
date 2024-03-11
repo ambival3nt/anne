@@ -19,6 +19,6 @@ class AnneMessages extends Model
     ];
 
     public function userMessage(){
-        return $this->belongsTo(Messages::class, 'id', 'input_id');
+        return $this->belongsTo(Messages::class, 'input_id', 'id');
     }
 }
