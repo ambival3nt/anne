@@ -32,7 +32,7 @@ We named her Anne, and thus, that is the name of the bot that lives here.
 ## Status
 
 Anne is very much unfinished. A lot of her was written just as GPT exploded in popularity, and there weren't libraries for anything, unlike now.
-So a lot of optimization could be done. She has a lot of bugs.
+So a lot of optimization could be done. She still has a significant number of bugs.
 
 The two creators of this project aren't really on speaking terms anymore so it's unlikely that this will ever be finished, thus it's being made public with the hope that maybe someone will be able to do something with the work we've done.
 
@@ -49,4 +49,4 @@ If you are having trouble getting it to install feel free to get in touch with m
 
 Note: PHP is not the best language for discord bots, or for AI, or for async or like 14 other parts of this project. You've been warned. <3
 
-<p style="text-align: right"><i>Backend poorly coded in PHP by ficetyeis, frontend by gils 2023-2023</i></p>
+<p style="text-align: right"><i>Backend written in PHP by ficetyeis, frontend design by gils 2023-2023</i></p>
